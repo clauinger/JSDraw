@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <link rel="shortcut icon" href="#">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.3.1/lib/p5.js"></script>
+
+  <link rel="stylesheet" href="main.css">
+  <!-- <script type="module" src="WorkSpace.js"></script> -->
+
+  <script type="module" src="index.js"></script>
+</head>
+
+<body>
+  <h2>JSDraw</h2>
+  <div class="radio-toolbar">
+    <label>
+      <input type="radio" id="Line_button" name="pens" class='penButton' value = 'line'>
+      line
+    </label>
+
+    <label>
+      <input type="radio" id="Arc_button" name="pens" class='penButton'>
+      Arc Shape
+    </label>
+
+    <label>
+      <input type="radio" id="Circle_button" name="pens" class='penButton' >
+      Circle Series
+    </label>
+
+    <label>
+      <input type="radio" id="Line_Collection_button" name="pens" class='penButton'>
+      Line Coloection
+    </label>
+
+    <label>
+      <input type="radio" id="Line_Series_button" name="pens" class='penButton'>
+      Line Series
+    </label>
+
+    <label>
+      <input type="radio" id="Bezier_Shape_button" name="pens" class='penButton'>
+      Bezier Shape
+    </label>
+
+    <label>
+      <input type="radio" id="Arc_Shape_button" name="pens" class='penButton'>
+      ARC Shape
+    </label>
+
+
+
+    <label>
+      <input type="radio" id="Composite_button" name="pens" class='penButton'>
+      Composite Shape Pen
+    </label>
+
+    <label>
+      <input type="radio" id="Universal_button" name="pens" class='penButton'>
+      Universal Shape
+    </label>
+
+    <label>
+      <input type="radio" id="Vector_button" name="pens" class='penButton'>
+      Multi Pen
+    </label>
+
+  </div>
+
+
+  <div id='drawBox'>
+
+  </div>
+
+</body>
+
+</html>
