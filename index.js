@@ -57,7 +57,7 @@ buttonList.forEach(buttonAndPen => {
     // button.parentElement.style.color = 'white'
   })
   if (button.checked) {
-    drawing.currentPen = pen
+    drawing.currentPen = pen //currentPen = 'multiShapePen_01'
 
     checkedButton = button
     checkedButton.parentElement.className = 'selected'

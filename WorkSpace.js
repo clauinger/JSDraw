@@ -9,19 +9,18 @@ import { LineSeriesPen } from './LineSeriesPen.js'
 import { CircleSeriesPen } from './CircleSeriesPen.js'
 import { BezierShapePen } from './BezierShapePen.js'
 import { ArcShapePen } from './ArcShapePen.js'
-
 import { UniversalShapePen } from './UniversalShapePen.js'
 import { MultiShapePen_01  } from './MultiShapePen_01.js'
 import {CompositeShapePen} from './CompositeShapePen.js'
 
-
 const {log} = console
 
-
-export const JSDraw = (parentContainerId)=>{
+export const JSDraw = (parentContainerId, canvasWidth = 300, canvasHeight = 300)=>{
   const NULL_OBJECT = {draw:()=>{},drawLoop:()=>{},context:null, isNULL_OBJECT:true, sendMousePress:()=>{},sendMouseDrag:()=>{},sendMouseRelease:()=>{}}
   let currentPen = NULL_OBJECT
   let _context
+
+
   const penSet = (()=>{ //LAZY DEFINITIONS
     const loadedPen = {}
     return {
@@ -34,7 +33,7 @@ export const JSDraw = (parentContainerId)=>{
         loadedPen.lineSeriesPen.constructAsSeries = true
         return loadedPen.lineSeriesPen
       },
-      get lineCollectionPen (){
+      get lineCollectionPen (){ 
         if(!loadedPen.lineCollectionPen)loadedPen.lineCollectionPen = new LineShapePen(_context)
         return loadedPen.lineCollectionPen
       },
@@ -71,20 +70,38 @@ export const JSDraw = (parentContainerId)=>{
   const s = (context) => {
     _context = context
     context.setup = function() {
-      const ctx = context.createCanvas(600, 600);
-      ctx.mousePressed(()=>{
-        if(!currentPen.context)currentPen.context = context
+      const ctx = context.createCanvas( canvasWidth, canvasHeight);
+      ctx.touchStarted((e)=>{ 
+        /** 
+        NOTE: p5js touchStarted method does not update mouseX & mouseY for the context, for some reason. 
+        Below is another way to get those values to create mousePoint
+        */
+        const box = e.target.getBoundingClientRect()
+        const x = e.targetTouches[0].clientX - box.x
+        const y = e.targetTouches[0].clientY - box.y
+        const mousePoint = {x,y}
+        currentPen.sendMousePress(mousePoint)
+        return false
+      })
+      ctx.mousePressed(()=>{ 
         const mousePoint = {x:context.mouseX, y:context.mouseY}
         currentPen.sendMousePress(mousePoint)
+      })
+      ctx.touchMoved(()=>{ 
+        currentPen.sendMouseDrag({x:context.mouseX, y:context.mouseY})
       })
       ctx.mouseMoved(()=>{
         currentPen.sendMouseDrag({x:context.mouseX, y:context.mouseY})
       })
-      ctx.mouseReleased(()=>{
+      ctx.touchEnded(()=>{
+        currentPen.sendMouseRelease({x:context.mouseX, y:context.mouseY})
+      })
+      ctx.mouseReleased(()=>{ 
         currentPen.sendMouseRelease({x:context.mouseX, y:context.mouseY})
       })
     };
   
+    
     context.draw = function() {
       const grayScale = 170
       context.background(`rgb(${grayScale},${grayScale},${grayScale})`);
@@ -104,52 +121,3 @@ export const JSDraw = (parentContainerId)=>{
     }
   }
 }
-
-// const buttonList = [{
-//     button: Line_button,
-//     pen: 'lineShapePen'
-//   }, {
-//     button: Arc_button,
-//     pen: 'arcLineShapePen'
-//   }, {
-//     button: Circle_button,
-//     pen: 'circleSeriesPen'
-//   }, {
-//     button: Line_Collection_button,
-//     pen: 'lineCollectionPen'
-//   }, {
-//     button: Line_Series_button,
-//     pen: 'lineSeriesPen'
-//   }, {
-//     button: Bezier_Shape_button,
-//     pen: 'bezierShapePen'
-//   }, {
-//     button: Arc_Shape_button,
-//     pen: 'arcShapePen'
-//   }, {
-//     button: Composite_button,
-//     pen: 'compositePen'
-//   }, {
-//     button: Universal_button,
-//     pen: 'universalShapePen'
-//   }, {
-//     button: Vector_button,
-//     pen: 'multiShapePen_01'
-//   }
-// ]
-
-// const drawing = JSDraw('drawBox')
-
-// buttonList.forEach(buttonAndPen =>{
-//   const {button,pen} = buttonAndPen
-//   button.addEventListener('change', x => {
-//     drawing.currentPen = pen
-
-//     button.parentElement.style.background = 'blue'
-//     button.style.color = 'white'
-//   })
-//   if(button.checked){
-//     drawing.currentPen = pen
-
-//   }
-// })
