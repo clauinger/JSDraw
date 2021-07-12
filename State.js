@@ -1,3 +1,11 @@
+//**-----------------------------------------------------------  */
+//** DRAW STATE FUNCTIONS                                         */
+//**-----------------------------------------------------------  */
+
+/*jshint esversion: 6 */
+/*jshint asi: true */
+/*jshint expr: true */
+
 import { Public } from './Public.js'
 const {log} = console
 
@@ -43,14 +51,11 @@ export const State = {
   rotatePointsTool: (refernceLine, anchorPoint, pointCollection)=>{ 
     const originalAngle = Public.getLineAngle(refernceLine)
     const originalPointAngles = pointCollection.map(pt=>Public.getAngle(anchorPoint, pt))
-    // const ln = {beginPoint:anchorPoint, endPoint:pointCollection[0]}
     const pointToAnchorLengths = pointCollection.map(pt=>Public.getLengthTwoPoints(anchorPoint, pt))
     return {
       refresh:()=>{ 
-
         const angleDelta =   Public.getLineAngle(refernceLine) - originalAngle
         pointCollection.forEach((pt,i) => {
-
           const newPt = Public.getEndPoint(anchorPoint,pointToAnchorLengths[i],originalPointAngles[i]  + angleDelta)
           if(pt.xy){
             pt.xy = newPt
@@ -58,17 +63,12 @@ export const State = {
             pt.x = newPt.x
             pt.y = newPt.y
           }
-
-
-
         });
       }
     }
   },
 
   drawPointCaptureHalo: (context, atPoint, rgbColorString, haloRadius, haloLineWeight = 2) => {
-    // log(context.strokeWeight())
-
     context
       .stroke(rgbColorString)
       .noFill()
@@ -78,7 +78,7 @@ export const State = {
   },
 
   drawTickCrossMark: (context, atPoint, rgbColorString, dimension, lineWeight) => {
-    dimension *= .5
+    dimension *= 0.5
     context
       .stroke(rgbColorString)
       .noFill()
@@ -104,6 +104,18 @@ export const State = {
     atPoint.x + tickSize, atPoint.y)
     .line(atPoint.x, atPoint.y - tickSize,
     atPoint.x, atPoint.y + tickSize)
-  }
+  },
+
+  drawCross : (context,atPoint, lineWeight = 1, tickSize = 7,  color = 'rgba(0%, 0%, 0%, 1)' ) => {
+    context
+      .stroke(color)
+      .strokeWeight(lineWeight)
+      .noFill()
+      .line(atPoint.x - tickSize, atPoint.y, atPoint.x + tickSize, atPoint.y)
+      .line(atPoint.x - tickSize, atPoint.y,
+      atPoint.x + tickSize, atPoint.y)
+      .line(atPoint.x, atPoint.y - tickSize,
+      atPoint.x, atPoint.y + tickSize)
+    }
 
 }

@@ -51,16 +51,23 @@ buttonList.forEach(buttonAndPen => {
   button.addEventListener('change', x => {
     drawing.currentPen = pen
     if(checkedButton)checkedButton.parentElement.className = ''
-    log('selected')
     button.parentElement.className = 'selected'
-    // button.parentElement.style.background = 'blue'
-    // button.parentElement.style.color = 'white'
   })
   if (button.checked) {
-    drawing.currentPen = pen //currentPen = 'multiShapePen_01'
-
+    drawing.currentPen = pen
     checkedButton = button
     checkedButton.parentElement.className = 'selected'
-
   }
+})
+
+startRecording.addEventListener('click', () => {
+  drawing.startRecording()
+})
+
+stopRecording.addEventListener('click', () => {
+  drawing.stopRecording()
+})
+
+play.addEventListener('click', () => {
+  drawing.playRecording()
 })

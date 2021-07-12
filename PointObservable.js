@@ -1,5 +1,4 @@
-import { State } from "./State.js";
-import {Public} from './Public.js'
+
 
 //**------------------------------------------------------------------------------------------ */
 //** POINT CLASS WITH DID-SET AND WILL-SET FUNCTIONALITY WHICH TRIGGERS WHEN X OR Y IS CHANGED */
@@ -8,6 +7,9 @@ import {Public} from './Public.js'
 /*jshint esversion: 6 */
 /*jshint asi: true */
 /* jshint expr: true */
+
+import { State } from "./State.js";
+import {Public} from './Public.js'
 
 const {log} = console
 

@@ -192,9 +192,9 @@ export class LineSeriesPen extends PenConstruct {
       selectedLineInfo.index = index
      }
     })
-    returnVal['selectedLineInfo'] = JSON.stringify(selectedLineInfo)
+    returnVal.selectedLineInfo = JSON.stringify(selectedLineInfo)
 
-    returnVal['selectionSets'] = JSON.stringify(selectedList)
+    returnVal.selectionSets = JSON.stringify(selectedList)
     // returnVal['selectedLineTracker'] = JSON.stringify(selectedList)
     //selectedLineTracker
    }

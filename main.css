@@ -2,6 +2,7 @@ body {
  margin:  0;
  font-family: 'Montserrat', Courier;
  font-size: small;
+ padding: 40px;
 }
 
 .radio-toolbar input[type="radio"] {
@@ -29,12 +30,22 @@ body {
   border: 2px dashed #444;
 }
 
-
-
 .radio-toolbar label:hover {
   background-color: #dfd;
 }
 
 .selected {
   background: blue;
+}
+
+
+#drawBox{
+  width: 300px;
+}
+
+button:disabled,
+button[disabled]{
+  border: 1px solid #999999;
+  background-color: #cccccc;
+  color: #666666;
 }

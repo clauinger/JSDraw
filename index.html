@@ -8,7 +8,6 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Document</title>
   <script src="https://cdn.jsdelivr.net/npm/p5@1.3.1/lib/p5.js"></script>
-
   <link rel="stylesheet" href="main.css">
   <!-- <script type="module" src="WorkSpace.js"></script> -->
 
@@ -16,7 +15,7 @@
 </head>
 
 <body>
-  <h2>JSDraw</h2>
+  <h2>Mechanized Ink</h2>
   <div class="radio-toolbar">
     <label>
       <input type="radio" id="Line_button" name="pens" class='penButton' value = 'line'>
@@ -72,10 +71,12 @@
 
   </div>
 
-
   <div id='drawBox'>
 
   </div>
+  <button type="button"  id='startRecording'>Start Recording</button>
+  <button type="button"  id='stopRecording'>Stop Recording</button>
+  <button type="button"  id='play' disabled >Play</button>
 
 </body>
 
