@@ -18,22 +18,17 @@ export class BezierShapePen extends LineShapePen {
   constructor(
     context,
     beginPoint = null,
-    endPoint = null,
+    endPoint = null
   ) {
-
-
     super(context, null ,null)
-    // super(context, beginPoint, endPoint)
-
     this.lineColor = GHOST_COLOR
     let beginControlPointGrip = NULL_OBJECT
     let endControlPointGrip = NULL_OBJECT
-    // let beginPointControlLine, endPointControlLine
     let beginPointControlLine = NULL_OBJECT
     let endPointControlLine = NULL_OBJECT
 
     const initParent = this.init
-    this.init = ()=>{ log('bezier init')
+    this.init = ()=>{ 
       if(beginPoint)this.didInitBeginPoint()
       if(endPoint)this.didInitEndPoint()
       beginPointControlLine.context = this.context
@@ -43,7 +38,7 @@ export class BezierShapePen extends LineShapePen {
       initParent()
     }
 
-    this.didInitBeginPoint = ()=>{ log('didInitBeginPoint')
+    this.didInitBeginPoint = ()=>{ 
       beginPointControlLine = new LineShapePen( this.context,this.beginPoint,{x:this.beginPoint.x,y:this.beginPoint.y})
       beginPointControlLine.lineColor = GHOST_COLOR
       beginPointControlLine.renderOutput = false
@@ -59,10 +54,10 @@ export class BezierShapePen extends LineShapePen {
           if(this.line.endPoint === null) return null
           const angle = Public.getLineAngle(this.line)
           return Public.getEndPoint(this.line.beginPoint,20,angle)
-        },
+        }
       )
     }
-    this.didInitEndPoint = ()=>{ log('didInitEndPoint')
+    this.didInitEndPoint = ()=>{ 
       endPointControlLine = new LineShapePen( this.context,this.endPoint,{x:this.endPoint.x,y:this.endPoint.y})
       endPointControlLine.lineColor = GHOST_COLOR
       endPointControlLine.renderOutput = false
@@ -77,7 +72,7 @@ export class BezierShapePen extends LineShapePen {
           if(this.line.endPoint === null) return null
           const angle = Public.getLineAngle(this.line) + 180
           return Public.getEndPoint(this.line.endPoint,20,angle)
-        },
+        }
         //** CONDITIONAL */ // beginPointControlLine
         // ()=>{return Public.getLineLength(endPointControlLine.line) > 20},
       )
@@ -94,7 +89,6 @@ export class BezierShapePen extends LineShapePen {
       this.endPoint.didSet = ()=>{
         beginControlPointGrip.setGripPoint();
         endControlPointGrip.setGripPoint()
-
       }
     }
 
@@ -118,7 +112,7 @@ export class BezierShapePen extends LineShapePen {
           this.bezier.beginPoint.x, this.bezier.beginPoint.y,
           this.bezier.beginControlPoint.x, this.bezier.beginControlPoint.y,
           this.bezier.endControlPoint.x, this.bezier.endControlPoint.y,
-          this.bezier.endPoint.x, this.bezier.endPoint.y,
+          this.bezier.endPoint.x, this.bezier.endPoint.y
         )
       }
       //* LINE SHAPE
@@ -156,7 +150,6 @@ export class BezierShapePen extends LineShapePen {
         this.defineEventFunction({
           mouseRelease: () => {
             controlLinePen.endPointIsSelected = false
-// this.pointsAnchoredToBeginPoint.push(this.beginControlPoint)
             this.setAnchoredPoints()
 
           }
@@ -167,7 +160,7 @@ export class BezierShapePen extends LineShapePen {
       evaluate:(
         mousePressPoint,
         beginGrip = beginControlPointGrip ,
-        endGrip = endControlPointGrip,
+        endGrip = endControlPointGrip
       )=>{
 
         if(beginGrip.verifyMousePress(mousePressPoint)){
@@ -197,26 +190,17 @@ export class BezierShapePen extends LineShapePen {
             beginControlPointGrip.setGripPoint();
             endControlPointGrip.setGripPoint()
             mousePressInfo.controlLinePen.endPointIsSelected = false
-// this.pointsAnchoredToBeginPoint.push(this.beginControlPoint)
             this.setAnchoredPoints()
-// log(this.pointsAnchoredToBeginPoint)
-
           }
         })
       }
     }
     this.setMousePressEventToFirst('mouseClickedOnGrip')
-
-
-    // log({beginPoint,endPoint})
     if(beginPoint && endPoint){
-      // log({beginPoint,endPoint})
       this.sendMousePress(beginPoint)
       this.sendMouseDrag(endPoint)
       this.sendMouseRelease(endPoint)
-      // this.init()
     }
-    // log({beginPoint,endPoint})
 
   } /**CLOSE CONSTRUCTOR */
   

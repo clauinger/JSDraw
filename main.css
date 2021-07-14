@@ -3,6 +3,7 @@ body {
  font-family: 'Montserrat', Courier;
  font-size: small;
  padding: 40px;
+ background: cadetblue;
 }
 
 .radio-toolbar input[type="radio"] {

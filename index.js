@@ -70,4 +70,6 @@ stopRecording.addEventListener('click', () => {
 
 play.addEventListener('click', () => {
   drawing.playRecording()
+  log(drawing.JSONRecord)
+  str = drawing.JSONRecord
 })

@@ -2,7 +2,6 @@
 /*jshint asi: true */
 /* jshint expr: true */
 
-
 import {
   LineShapePen
 } from './LineShapePen.js'
@@ -38,7 +37,6 @@ const {
   log
 } = console
 
-
 function detectLeftButton(evt) {
   evt = evt || window.event;
   if ("buttons" in evt) {
@@ -47,7 +45,6 @@ function detectLeftButton(evt) {
   const button = evt.which || evt.button;
   return button == 1;
 }
-
 
 export const JSDraw = (parentContainerId, canvasWidth = 300, canvasHeight = 300) => {
   const NULL_OBJECT = {
@@ -110,6 +107,9 @@ export const JSDraw = (parentContainerId, canvasWidth = 300, canvasHeight = 300)
   }
   const penSet = createPenSet()
 
+  const grayScale = 100
+  let _backgroundColor = `rgb(${grayScale},${grayScale},${grayScale})`
+
   const s = (context) => {
     _context = context
     context.setup = function () {
@@ -163,8 +163,7 @@ export const JSDraw = (parentContainerId, canvasWidth = 300, canvasHeight = 300)
     };
 
     context.draw = function () {
-      const grayScale = 170
-      context.background(`rgb(${grayScale},${grayScale},${grayScale})`);
+      context.background(_backgroundColor);
       if (currentPen) currentPen.drawLoop()
     };
   };
@@ -226,19 +225,20 @@ export const JSDraw = (parentContainerId, canvasWidth = 300, canvasHeight = 300)
     }
   }
 
-
-
   let record
   let playBackPen
   const getRecord = ()=>{return record}
-
-  function playBackRecord(record){ 
+  let isPlaying = false
+  function playBackRecord(record , loopRepeat = true){ 
+    if(isPlaying)return 
+    isPlaying = true
     const penkey = record[0].penKey
     playBackPen = null
     playBackPen = createPenSet()[penkey]
     currentPen = {
       draw: () => {},
       drawLoop:  () => { 
+        _context.clear()
         if (currentEvent) State.drawCross(
           _context,
           currentEvent.mousePoint || {
@@ -255,9 +255,8 @@ export const JSDraw = (parentContainerId, canvasWidth = 300, canvasHeight = 300)
       sendMouseDrag: () => {},
       sendMouseRelease: () => {}
     }
-    // log(currentPen)
     let currentEvent = null
-    record.forEach(event => {
+    record.forEach((event, i) => {
       setTimeout(() => {
         currentEvent = event
         if(event.type === 'press') {
@@ -267,8 +266,37 @@ export const JSDraw = (parentContainerId, canvasWidth = 300, canvasHeight = 300)
         } else  if(event.type === 'release') {
           playBackPen.sendMouseRelease(event.mousePoint)
         }
+        if((i === record.length - 1) && loopRepeat) {
+          isPlaying = false
+          playBackRecord(record , loopRepeat)
+        }
+        // if((i === record.length - 1) && loopRepeat) log(record[0])
       }, event.time)
     })
+    // let go = true
+    // let i = 0
+    // while (go) { 
+    //   const event = record[i]
+    //   setTimeout(() => {
+    //     currentEvent = event
+    //     if(event.type === 'press') {
+    //       playBackPen.sendMousePress(event.mousePoint)
+    //     } else  if(event.type === 'drag') {
+    //       playBackPen.sendMouseDrag(event.mousePoint)
+    //     } else  if(event.type === 'release') {
+    //       playBackPen.sendMouseRelease(event.mousePoint)
+    //     }
+    //   }, event.time)
+
+
+    //   i++
+    //   const isAtEndOfEventLoop = i === (record.length - 1)
+    //   if (isAtEndOfEventLoop && loopRepeat){ 
+    //     i = 0
+    //     go = false
+    //   } else if(isAtEndOfEventLoop) go = false
+    // }
+
   }
 
   //** BELOW IS TO DETECT IF MOUSE LEFT BUTTON IS RELEASED OUTSIDE OF CANVAS */
@@ -280,8 +308,17 @@ export const JSDraw = (parentContainerId, canvasWidth = 300, canvasHeight = 300)
   })
 
   return {
-    playBackJSONRecord : (JSONString = JSONRecord)=>{ 
+    get JSONRecord(){
+      let lastRecord = getRecord()
+      if(lastRecord)lastRecord = JSON.stringify(lastRecord)
+      return lastRecord || JSONRecord
+    },
+    playBackJSONRecord : (JSONString = JSONRecord)=>{  
+
       playBackRecord(JSON.parse(JSONString))
+    },
+    playBackRecord : (record)=>{  
+      playBackRecord(record)
     },
     startRecording : () => {
       currentPen = recordUserPenAction(currentPen)
@@ -299,12 +336,19 @@ export const JSDraw = (parentContainerId, canvasWidth = 300, canvasHeight = 300)
     get currentPen() {
       return currentPenKey
     },
-    
+
     set currentPen(key) {
       currentPenKey = key
       if (penSet[key]) currentPen = penSet[key]
       currentPen.key = key
-    }
+    },
+
+    get backgroundColor (){
+      return _backgroundColor
+    },
+    set backgroundColor (clr){
+      _backgroundColor = clr
+    },
   }
 }
 
