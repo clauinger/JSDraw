@@ -1,3 +1,7 @@
+//**-----------------------------------------------------------  */
+//** EVERYTHING INTERFACING WITH THE DOM GOES HERE         */
+//**-----------------------------------------------------------  */
+
 /*jshint esversion: 6 */
 /*jshint asi: true */
 /* jshint expr: true */
@@ -73,9 +77,9 @@ const setBg = () => {
 }
 
 
-container.addEventListener('touchmove', function(e) {
-  if(e.target.className === 'p5Canvas'){
-    e.preventDefault();
-  }
-}, false);
+// container.addEventListener('touchmove', function(e) {
+//   if(e.target.className === 'p5Canvas'){
+//     e.preventDefault();
+//   }
+// }, false);
 

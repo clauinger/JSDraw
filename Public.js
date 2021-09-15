@@ -1,3 +1,14 @@
+//**------------------------------------------------------------------------------------------ */
+//** PUBLIC FUNCTIONS FOR ACCESS WHERE THIS FILE IS IMPORTED                                   */
+//** ALL FUNCTIONS ARE TO BE PURE                                    */
+//**------------------------------------------------------------------------------------------- */
+
+/*jshint esversion: 6 */
+/*jshint asi: true */
+/* jshint expr: true */
+
+
+
 const {
   log
 } = console
@@ -245,21 +256,21 @@ export const Public = {
   },
 
 
-  isNodeKind: (point) => {
-    if (point) {} else {
-      return false
-    }
-    if (point.kind) {} else {
-      return false
-    }
-    if (point.x) {} else {
-      return false
-    }
-    if (point.y) {} else {
-      return false
-    }
-    return point.kind === 'node'
-  },
+  // isNodeKind: (point) => {
+  //   if (point) {} else {
+  //     return false
+  //   }
+  //   if (point.kind) {} else {
+  //     return false
+  //   }
+  //   if (point.x) {} else {
+  //     return false
+  //   }
+  //   if (point.y) {} else {
+  //     return false
+  //   }
+  //   return point.kind === 'node'
+  // },
 
   whatThisIs: (obj) => { //formerly what
     if (typeof (obj) === "undefined") return "undefined";
@@ -473,7 +484,6 @@ export const Public = {
       //context.arc(x, y, diameter, diameter, beginAngle, endAngle)
       x: centerPoint.x,
       y: centerPoint.y,
-      diameter,
       diameter,
       beginAngle: direction === 'clockwise' ? beginAngle : endAngle,
       endAngle: direction === 'clockwise' ? endAngle : beginAngle,

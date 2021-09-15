@@ -2,7 +2,6 @@
 /*jshint asi: true */
 /* jshint expr: true */
 
-
 import {
   LineShapePen
 } from './LineShapePen.js'
@@ -60,6 +59,7 @@ function detectLeftButton(evt) {
 
 
 export const JSDraw = (parentContainerId, canvasWidth = 600, canvasHeight = 600) => {
+
   const NULL_OBJECT = {
     draw: () => {},
     drawLoop: () => {},
@@ -72,9 +72,7 @@ export const JSDraw = (parentContainerId, canvasWidth = 600, canvasHeight = 600)
   let currentPen = NULL_OBJECT
   let _context
 
-  // let arrayPen
-
-  const createPenSet = () => {
+  const createPenSet = () => { 
     const loadedPen = {}
     return {
       get lineShapePen() {
@@ -201,7 +199,9 @@ export const JSDraw = (parentContainerId, canvasWidth = 600, canvasHeight = 600)
     }
   }
   const penSet = createPenSet()
-  const grayScale = 200
+
+  const grayScale = 100
+
   let _backgroundColor = `rgb(${grayScale},${grayScale},${grayScale})`
 
   const s = (context) => {
@@ -231,9 +231,31 @@ export const JSDraw = (parentContainerId, canvasWidth = 600, canvasHeight = 600)
         }
         myConsole.innerHTML = `console: mousePressPoint: {x:${mousePoint.x}, y:${mousePoint.y}}`
         currentPen.sendMousePress(mousePoint)
+        return false
+      })
+      ctx.mousePressed(() => {
+        const mousePoint = {
+          x: context.mouseX,
+          y: context.mouseY
+        }
+        currentPen.sendMousePress(mousePoint)
       })
       ctx.touchMoved(() => {
         currentPen.sendMouseDrag({
+          x: context.mouseX,
+          y: context.mouseY
+        })
+      })
+      ctx.mouseMoved(() => {
+        currentPen.sendMouseDrag({
+          x: context.mouseX,
+          y: context.mouseY
+        })
+      })
+
+      ctx.touchEnded(() => {
+        currentPen.sendMouseRelease({
+
           x: context.mouseX,
           y: context.mouseY
         })
@@ -250,6 +272,7 @@ export const JSDraw = (parentContainerId, canvasWidth = 600, canvasHeight = 600)
           y: context.mouseY
         })
       })
+
       ctx.mouseReleased(() => {
         currentPen.sendMouseRelease({
           x: context.mouseX,
@@ -264,27 +287,165 @@ export const JSDraw = (parentContainerId, canvasWidth = 600, canvasHeight = 600)
     };
   };
   let currentPenKey
-  const session = new p5(s, parentContainerId);
 
+  const session = new p5(s, parentContainerId)
+
+  function recordUserPenAction(_pen = currentPen) {
+    const _record = [{penKey :currentPenKey}]
+    const _key = currentPenKey
+    const startTime = Date.now()
+    return {
+      isRecordPen: true,
+      sendMousePress: (mousePoint) => {
+        _record.push({
+          type: 'press',
+          mousePoint,
+          time: Date.now() - startTime,
+        })
+        _pen.sendMousePress(mousePoint)
+      },
+      sendMouseDrag: (mousePoint) => { 
+        _record.push({
+          type: _pen.mouseIsPressed ? 'drag' : 'hover',
+          mousePoint,
+          time: Date.now() - startTime,
+        })
+        _pen.sendMouseDrag(mousePoint)
+      },
+      sendMouseRelease: (mousePoint) => { //sendMouseRelase
+        _record.push({
+          type: 'release',
+          mousePoint,
+          time: Date.now() - startTime,
+        })
+        _pen.sendMouseRelease(mousePoint)
+      },
+      getRecord: () => {
+        return _record
+      },
+      getPen: () => {
+        return _pen
+      },
+      get record() {
+        return _record
+      },
+      get pen() {
+        return _pen
+      },
+      get penKey(){ 
+        return _key
+      },
+      drawLoop: () => {
+        State.drawPointMark(_context, {
+          x: 200,
+          y: 123
+        })
+        _pen.drawLoop()
+      }
+    }
+  }
+
+  let record
+  let playBackPen
+  const getRecord = ()=>{return record}
+  let isPlaying = false
+  function playBackRecord(record , loopRepeat = true){ 
+    if(isPlaying)return 
+    isPlaying = true
+    const penkey = record[0].penKey
+    playBackPen = null
+    playBackPen = createPenSet()[penkey]
+    currentPen = {
+      draw: () => {},
+      drawLoop:  () => { 
+        _context.clear()
+        if (currentEvent) State.drawCross(
+          _context,
+          currentEvent.mousePoint || {
+            x: 0,
+            y: 0
+          },
+          currentEvent.type === 'hover' ? 1 : 2
+        )
+        if(playBackPen)playBackPen.drawLoop()
+      },
+      context: null,
+      isNULL_OBJECT: true,
+      sendMousePress: () => {},
+      sendMouseDrag: () => {},
+      sendMouseRelease: () => {}
+    }
+    let currentEvent = null
+    record.forEach((event, i) => {
+      setTimeout(() => {
+        currentEvent = event
+        if(event.type === 'press') {
+          playBackPen.sendMousePress(event.mousePoint)
+        } else  if(event.type === 'drag') {
+          playBackPen.sendMouseDrag(event.mousePoint)
+        } else  if(event.type === 'release') {
+          playBackPen.sendMouseRelease(event.mousePoint)
+        }
+        if((i === record.length - 1) && loopRepeat) {
+          isPlaying = false
+          playBackRecord(record , loopRepeat)
+        }
+        // if((i === record.length - 1) && loopRepeat) log(record[0])
+      }, event.time)
+    })
+    // let go = true
+    // let i = 0
+    // while (go) { 
+    //   const event = record[i]
+    //   setTimeout(() => {
+    //     currentEvent = event
+    //     if(event.type === 'press') {
+    //       playBackPen.sendMousePress(event.mousePoint)
+    //     } else  if(event.type === 'drag') {
+    //       playBackPen.sendMouseDrag(event.mousePoint)
+    //     } else  if(event.type === 'release') {
+    //       playBackPen.sendMouseRelease(event.mousePoint)
+    //     }
+    //   }, event.time)
+
+
+    //   i++
+    //   const isAtEndOfEventLoop = i === (record.length - 1)
+    //   if (isAtEndOfEventLoop && loopRepeat){ 
+    //     i = 0
+    //     go = false
+    //   } else if(isAtEndOfEventLoop) go = false
+    // }
+
+  }
+
+  //** BELOW IS TO DETECT IF MOUSE LEFT BUTTON IS RELEASED OUTSIDE OF CANVAS */
+  document.getElementById(parentContainerId).addEventListener('mouseenter', (e) => {
+    const leftBtn = detectLeftButton(e)
+    if (!leftBtn) {
+      currentPen.sendMouseRelease()
+    }
+  })
 
   return {
-    get JSONRecord() {
+    get JSONRecord(){
       let lastRecord = getRecord()
-      if (lastRecord) lastRecord = JSON.stringify(lastRecord)
+      if(lastRecord)lastRecord = JSON.stringify(lastRecord)
       return lastRecord || JSONRecord
     },
-    playBackJSONRecord: (JSONString = JSONRecord) => {
+    playBackJSONRecord : (JSONString = JSONRecord)=>{  
 
       playBackRecord(JSON.parse(JSONString))
     },
-    playBackRecord: (record) => {
+    playBackRecord : (record)=>{  
       playBackRecord(record)
     },
-    startRecording: () => {
+    startRecording : () => {
       currentPen = recordUserPenAction(currentPen)
     },
 
-    stopRecording: () => {
+    stopRecording : () => {
+
       record = currentPen.record
       currentPen = currentPen.pen
     },
@@ -303,10 +464,12 @@ export const JSDraw = (parentContainerId, canvasWidth = 600, canvasHeight = 600)
       currentPen.key = key
     },
 
+
     get backgroundColor() {
       return _backgroundColor
     },
     set backgroundColor(clr) {
+
       _backgroundColor = clr
     },
   }

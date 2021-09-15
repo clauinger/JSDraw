@@ -104,17 +104,22 @@ export class PenConstruct {
       },
       mouseRelease: () => {
         log('mouseRelease')
-      }
+      },
+      mouseHover : () => {
+        log('mouseHover')
+      },
+
     }
     this.eventFunction = eventFunction
-
+    const NULL_EVENT_CALLBACK = ()=>{}
     const clearEventFunctions = () => {
-      eventFunction.mouseDragBegin = () => {}
-      eventFunction.mouseDragContinue = () => {}
-      eventFunction.mouseReleaseAfterDrag = () => {}
-      eventFunction.mouseReleaseWithoutDrag = () => {}
-      eventFunction.mouseRelease = () => {}
+      eventFunction.mouseDragBegin = NULL_EVENT_CALLBACK
+      eventFunction.mouseDragContinue = NULL_EVENT_CALLBACK
+      eventFunction.mouseReleaseAfterDrag = NULL_EVENT_CALLBACK
+      eventFunction.mouseReleaseWithoutDrag = NULL_EVENT_CALLBACK
+      eventFunction.mouseRelease = NULL_EVENT_CALLBACK
     }
+
 
     //**TODO EVALUATE BELOW AS TO WHERE IT IS CALLED. DELETE IF NOT USED */
     // this.evaluateMousePoint = (
@@ -146,20 +151,21 @@ export class PenConstruct {
     //   return userMousePressInfo
     // }
 
+
     this.defineEventFunction = function (keyedFunctionPair) { 
       const key = Object.keys(keyedFunctionPair)[0]
       switch (key) {
         case 'mouseRelease': {
-          eventFunction.mouseReleaseAfterDrag = () => {}
-          eventFunction.mouseReleaseWithoutDrag = () => {}
+          eventFunction.mouseReleaseAfterDrag = NULL_EVENT_CALLBACK
+          eventFunction.mouseReleaseWithoutDrag = NULL_EVENT_CALLBACK
         }
         break
         case 'mouseReleaseWithoutDrag': {
-          eventFunction.mouseRelease = () => {}
+          eventFunction.mouseRelease = NULL_EVENT_CALLBACK
         }
         break
         case 'mouseReleaseAfterDrag': {
-          eventFunction.mouseRelease = () => {}
+          eventFunction.mouseRelease = NULL_EVENT_CALLBACK
         }
       }
       eventFunction[key] = keyedFunctionPair[key]
@@ -179,8 +185,9 @@ export class PenConstruct {
     //**------------------------------------------------------ */
     //** CREATE A DOUBLE CLICK EVENT STREAM */
     let mouseClickTimeStamp
-    this.onMouseDoubleClick = ()=>{}
-    const getDoubleEvent = ()=>{ 
+
+    this.onMouseDoubleClick = NULL_EVENT_CALLBACK
+    const getDoubleEvent = ()=>{
       const lastTimeStamp = mouseClickTimeStamp
       mouseClickTimeStamp = Date.now()
       if(!lastTimeStamp)return
@@ -198,9 +205,10 @@ export class PenConstruct {
       this.mouseWasDragged = false
       const mousePressInfo = eventFunction.mousePress(mousePressPoint)
       this.mouseDidPress(mousePressPoint)
+      this.mouseIsPressed = true
       return mousePressInfo
     }
-    this.mouseDidPress = ()=>{}
+    this.mouseDidPress = NULL_EVENT_CALLBACK
     //**------------------------------------------------------ */
     this.sendMouseDrag = (mouseDragPoint) => {
       const {x,y} = mouseDragPoint
@@ -209,10 +217,13 @@ export class PenConstruct {
         eventFunction.mouseDragBegin(mouseDragPoint)
         this.mouseWasDragged = true
       }
+
+      if(!this.mouseIsPressed) eventFunction.mouseHover(mouseDragPoint)
+
       eventFunction.mouseDragContinue(mouseDragPoint)
       this.mouseDidDrag(mouseDragPoint)
     }
-    this.mouseDidDrag = ()=>{}
+    this.mouseDidDrag = NULL_EVENT_CALLBACK
     //**------------------------------------------------------ */
     this.sendMouseRelease = (mouseReleasePoint) => {
       if(mouseReleasePoint){
@@ -228,8 +239,9 @@ export class PenConstruct {
       eventFunction.mouseRelease(mouseReleasePoint)
       this.mouseDidRelease(mouseReleasePoint)
       clearEventFunctions()
+      this.mouseIsPressed = false
     }
-    this.mouseDidRelease = ()=>{}
+    this.mouseDidRelease = NULL_EVENT_CALLBACK
     //**-------------------------------------------------*/
     this.userMousePressInfo
     this.lastEventKey = null

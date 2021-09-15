@@ -1,6 +1,7 @@
-//**-----------------------------------------------------------------------------------------------  */
-//** THESE ARE ALL FUNCTIONS WHICH PRODUCE VALUE CHANGES TO OBJECTS WHICH ARE PASSED IN AS ARGUMENTS */
-//**-----------------------------------------------------------------------------------------------  */
+//**-----------------------------------------------------------  */
+//** DRAW STATE FUNCTIONS                                         */
+//**-----------------------------------------------------------  */
+
 
 /*jshint esversion: 6 */
 /*jshint asi: true */
@@ -45,7 +46,6 @@ export const State = {
   rotatePointsTool: (refernceLine, anchorPoint, pointCollection)=>{ 
     const originalAngle = Public.getLineAngle(refernceLine)
     const originalPointAngles = pointCollection.map(pt=>Public.getAngle(anchorPoint, pt))
-    // const ln = {beginPoint:anchorPoint, endPoint:pointCollection[0]}
     const pointToAnchorLengths = pointCollection.map(pt=>Public.getLengthTwoPoints(anchorPoint, pt))
     return {
       refresh:()=>{ 
@@ -59,8 +59,10 @@ export const State = {
             pt.y = newPt.y
           }
         })
+
       }
     }
   },
+
 
 }

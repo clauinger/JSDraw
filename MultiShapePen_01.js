@@ -139,7 +139,9 @@ export class MultiShapePen_01 extends PenConstruct {
     }
     this.currentShape = NULL_OBJECT
 
-    const cycleSwitchChangeShape = ()=>{ log('cycleSwitchChangeShape')
+    
+
+    const cycleSwitchChangeShape = ()=>{ 
       if(this.currentShape === lineShapePen) this.currentShape = this.getArcShapePen()
       else if(this.currentShape === arcShapePen) this.currentShape = this.getBezierShapePen()
       else if(this.currentShape === bezierShapePen) this.currentShape = this.getLineShapePen()
