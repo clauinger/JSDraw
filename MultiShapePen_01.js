@@ -15,8 +15,12 @@ import {
   PenConstruct
 } from './PenConstruct.js'
 import {
-  PointObservable , Node
-} from './PointObservable.js'
+  PointObservable ,
+} from './ReactiveModules/PointObservable.js'
+import {
+  NodeConnection ,
+} from './ReactiveModules/NodeConnection.js'
+//NodeConnection
 
 import {
   BezierShapePen
@@ -27,6 +31,11 @@ import {
 } from './ArcShapePen.js'
 
 import { grip} from './PenTools.js';
+
+const LINE_SHAPE_PEN = 'LineShapePen'
+const ARC_SHAPE_PEN = 'ArcShapePen'
+const BEZIER_SHAPE_PEN = 'BezierShapePen'
+const GROUP_SHAPE_PEN = 'GroupShapePen'
 
 const GHOST_COLOR = 'rgba(0,0,0,.1)'
 const NULL_OBJECT = {draw:()=>{},drawLoop:()=>{},context:null, isNULL_OBJECT:true}
@@ -44,7 +53,10 @@ export class MultiShapePen_01 extends PenConstruct {
     context,
     //TODO MAKE INIT ROUTINE FOR POINTS SPECIFIED
     beginPoint,
-    endPoint 
+    endPoint,
+    currentShapeType = LINE_SHAPE_PEN,
+    inputs
+
   ) {
     super()
     this.context = context
@@ -57,6 +69,9 @@ export class MultiShapePen_01 extends PenConstruct {
 
     this.shapeCollection = []
 
+    // this.
+    this.showShapeTypeGrip = true
+
     this.didSetShapeBeginPoint = ()=>{}
     this.didSetShapeEndPoint = ()=>{}
 
@@ -66,6 +81,14 @@ export class MultiShapePen_01 extends PenConstruct {
       if(point === this.beginPoint) this.beginPointIsSelected = true
       if(point === this.endPoint) this.endPointIsSelected = true
     }
+    this.getCurrentShapeType = ()=>{
+      if(this.currentShape === bezierShapePen)return BEZIER_SHAPE_PEN
+      if(this.currentShape === arcShapePen)return ARC_SHAPE_PEN
+      if(this.currentShape === lineShapePen)return LINE_SHAPE_PEN
+    }
+
+
+
     let bezierShapePen
     this.getBezierShapePen = ()=>{
       if(!bezierShapePen) {
@@ -81,7 +104,7 @@ export class MultiShapePen_01 extends PenConstruct {
     }
 
     let arcShapePen
-    this.getArcShapePen = ()=>{ 
+    this.getArcShapePen = ()=>{
       if(!arcShapePen) {
         arcShapePen = new ArcShapePen(this.context)
         arcShapePen.sendMousePress(this.beginPoint)
@@ -95,8 +118,10 @@ export class MultiShapePen_01 extends PenConstruct {
 
     let lineShapePen
     this.getLineShapePen = ()=>{
+
       if(!lineShapePen) {
         lineShapePen = new PenConstruct()
+        lineShapePen.isLineShapePen = true
         lineShapePen.beginPoint = new PointObservable(this.beginPoint.xy)
         lineShapePen.endPoint = new PointObservable(this.endPoint.xy)
         lineShapePen.init = ()=>{}
@@ -114,7 +139,7 @@ export class MultiShapePen_01 extends PenConstruct {
     }
     this.currentShape = NULL_OBJECT
 
-    const cycleSwitchChangeShape = ()=>{ 
+    const cycleSwitchChangeShape = ()=>{ log('cycleSwitchChangeShape')
       if(this.currentShape === lineShapePen) this.currentShape = this.getArcShapePen()
       else if(this.currentShape === arcShapePen) this.currentShape = this.getBezierShapePen()
       else if(this.currentShape === bezierShapePen) this.currentShape = this.getLineShapePen()
@@ -133,21 +158,20 @@ export class MultiShapePen_01 extends PenConstruct {
 
     this.shapeTypeGrip = NULL_OBJECT
 
-    this.beginNode = new Node()
-    this.endNode = new Node()
+    // this.currentShapeType = currentShapeType
+    this.beginNode = new NodeConnection()
+    this.endNode = new NodeConnection()
 
     this.drawLoop=()=>{ 
       if(!this.context)return
       if(!this.hasLineDrawn)return
-      if(this.beginPoint)State.drawPointMark(this.context,this.beginPoint)
-      if(this.endPoint)State.drawPointMark(this.context,this.endPoint)
       this.context.stroke(this.lineColor)
 
       this.context.strokeWeight(1);
       this.context.stroke( this.lineIsSelected ? 'red' :   GHOST_COLOR)
       this.context.line(this.beginPoint.x, this.beginPoint.y, this.endPoint.x, this.endPoint.y);
       if (this.beginPointIsSelected) {
-        State.drawPointCaptureHalo(
+        DrawMark.pointCaptureHalo(
           this.context,
           /*  atPoint         */
           this.beginPoint,
@@ -160,7 +184,7 @@ export class MultiShapePen_01 extends PenConstruct {
         )
       }
       if (this.endPointIsSelected) {
-        State.drawPointCaptureHalo(
+        DrawMark.pointCaptureHalo(
           this.context,
           /*  atPoint         */
           this.endPoint,
@@ -174,7 +198,7 @@ export class MultiShapePen_01 extends PenConstruct {
       }
 
       this.currentShape.drawLoop()
-      this.shapeTypeGrip.draw()
+      if(this.showShapeTypeGrip) this.shapeTypeGrip.draw()
     }
 
     this.mousePressEventStack = {
@@ -185,7 +209,7 @@ export class MultiShapePen_01 extends PenConstruct {
           const result = this.shapeTypeGrip.verifyMousePress(mousePressPoint)
           if(result)return {mousePressPoint}
         },
-        exicute: (info)=>{
+        execute: (info)=>{
           let dragSteps = 0
           this.defineEventFunctions({
 
@@ -212,9 +236,9 @@ export class MultiShapePen_01 extends PenConstruct {
           if(!result)return
           if(result.eventKey === "mouseClickedOnLine") return
           if(result.eventKey === "mouseClickedOnPoint") return
-          if(shape)return {shape, mousePressPoint}
+          if(shape)return {shape, mousePressPoint, childEventInfo : result}
         },
-        exicute: (info)=>{ 
+        execute: (info)=>{ 
           const {shape} = info
           const shapeBeginPointSnapShot = shape.beginPoint.xy
           let  shapeEndPointSnapShot 
@@ -225,7 +249,6 @@ export class MultiShapePen_01 extends PenConstruct {
           this.defineEventFunctions({
             mouseDragBegin: (mouseDragPoint) => {
               shape.sendMouseDrag(mouseDragPoint)
-
               shapeEndPointSnapShot = shape.endPoint.xy
               checkPointChange(shapeBeginPointSnapShot, shape.beginPoint, this.didSetShapeBeginPoint )
               checkPointChange(shapeEndPointSnapShot, shape.endPoint, this.didSetShapeEndPoint )
@@ -248,7 +271,7 @@ export class MultiShapePen_01 extends PenConstruct {
           const result = Public.getUserMouseClickOnPoint(mousePressPoint,this.proximityDistance, [this.beginPoint, this.endPoint])
           if(result) return {point: result, mousePressPoint}
         },
-        exicute: (info)=>{ 
+        execute: (info)=>{ 
           const {mousePressPoint, point} = info
           this.defineEventFunctions({
             mouseDragContinue: (mouseDragPoint) => {
@@ -263,7 +286,7 @@ export class MultiShapePen_01 extends PenConstruct {
           const result = Public.getUserMouseClickOnLine(mousePressPoint,this.proximityDistance, [this.line])
           if(result)return {line: result, mousePressPoint}
         },
-        exicute: (info)=>{ 
+        execute: (info)=>{
           // this.shapeTypeGrip.hidden = true
           const lineIsAlreadySelected = this.lineIsSelected
           const {mousePressPoint, line} = info
@@ -294,7 +317,7 @@ export class MultiShapePen_01 extends PenConstruct {
     this.userInitializer = {
       evaluateRequirements: (hasLineDrawn = this.hasLineDrawn) => hasLineDrawn === false, //   PURE FUNCTION
 
-      exicute: (mousePressPoint) => {
+      execute: (mousePressPoint) => {
         this.beginPoint = new PointObservable(mousePressPoint,this)
         this.beginNode.addPoint(this.beginPoint)
         this.defineEventFunctions({
@@ -333,6 +356,42 @@ export class MultiShapePen_01 extends PenConstruct {
       this.beginPoint.appendDidSet(this.shapeTypeGrip.setGripPoint)
       this.endPoint.appendDidSet(this.shapeTypeGrip.setGripPoint)
     }
+
+    if(!beginPoint || !endPoint)return
+    // log(beginPoint)
+
+    if(beginPoint)this.beginPoint = new PointObservable(beginPoint)
+    if(endPoint)this.endPoint = new PointObservable(endPoint)
+
+    this.beginNode.addPoint(this.beginPoint)
+    this.endNode.addPoint(this.endPoint)
+
+    switch (currentShapeType) {
+      case LINE_SHAPE_PEN: {
+        this.currentShape = this.getLineShapePen()
+      }
+      break;
+      case ARC_SHAPE_PEN: {
+        this.currentShape = this.getArcShapePen()
+        if(inputs.radius)this.currentShape.setRadius(inputs.radius)
+      }
+      break;
+      case BEZIER_SHAPE_PEN: {
+        this.currentShape = this.getBezierShapePen()
+        if(inputs.beginControlPoint ) this.currentShape.beginControlPoint.xy = inputs.beginControlPoint
+        if(inputs.endControlPoint ) this.currentShape.endControlPoint.xy = inputs.endControlPoint
+      }
+      break;
+      case GROUP_SHAPE_PEN: {
+        this.currentShape = this.getLineShapePen()
+        // this.currentShape = this.getBezierShapePen()
+      }
+      break;
+    }
+
+
+    this.init()
+    // this.init()
     
 
   }//* CLOSE CONSTRUCTOR */
@@ -367,9 +426,38 @@ export class MultiShapePen_01 extends PenConstruct {
     return Public.getLineAngle(this.line)
   }
 
+  get centerPoint (){
+    // if(this.currentShape !== this.getArcShapePen()) return null
+    return this.currentShape.centerPoint
+  }
+
   get midPoint() {
     if (this.hasLineDrawn === false)return null
     return Public.getLineMidPoint(this.line)
+  }
+
+  get currentShapeType (){
+    return this.getCurrentShapeType()
+  }
+
+  get shapeOutput (){
+    if(this.currentShape.isLineShapePen) return ['line', this.beginPoint.x,  this.beginPoint.y, this.endPoint.x,  this.endPoint.y]
+    return this.currentShape.shapeOutput
+  }
+
+  get direction (){
+    return this.currentShape.direction
+  }
+
+  get radius(){
+    return this.currentShape.radius
+  }
+
+  get hideShapeTypeGrip (){
+    return this.showShapeTypeGrip === false
+  }
+  set hideShapeTypeGrip (bool){
+    this.showShapeTypeGrip = bool ? false : true
   }
 
 }

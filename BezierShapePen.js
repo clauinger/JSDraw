@@ -19,11 +19,15 @@ export class BezierShapePen extends LineShapePen {
     context,
     beginPoint = null,
     endPoint = null,
+    beginControlPoint,
+    endControlPoint
   ) {
 
 
     super(context, null ,null)
     // super(context, beginPoint, endPoint)
+
+    this.beginPoint
 
     this.lineColor = GHOST_COLOR
     let beginControlPointGrip = NULL_OBJECT
@@ -33,7 +37,7 @@ export class BezierShapePen extends LineShapePen {
     let endPointControlLine = NULL_OBJECT
 
     const initParent = this.init
-    this.init = ()=>{ log('bezier init')
+    this.init = ()=>{ return //** NOT BEING CALLED */
       if(beginPoint)this.didInitBeginPoint()
       if(endPoint)this.didInitEndPoint()
       beginPointControlLine.context = this.context
@@ -62,14 +66,12 @@ export class BezierShapePen extends LineShapePen {
         },
       )
     }
-    this.didInitEndPoint = ()=>{ log('didInitEndPoint')
+    this.didInitEndPoint = ()=>{ log('this.didInitEndPoint')
       endPointControlLine = new LineShapePen( this.context,this.endPoint,{x:this.endPoint.x,y:this.endPoint.y})
       endPointControlLine.lineColor = GHOST_COLOR
       endPointControlLine.renderOutput = false
       this.endControlPoint = endPointControlLine.endPoint
-
       this.pointsAnchoredToEndPoint.push(this.endControlPoint)
-
       endControlPointGrip = grip(
         this.context,
         //** REACH LOCATION */
@@ -78,8 +80,6 @@ export class BezierShapePen extends LineShapePen {
           const angle = Public.getLineAngle(this.line) + 180
           return Public.getEndPoint(this.line.endPoint,20,angle)
         },
-        //** CONDITIONAL */ // beginPointControlLine
-        // ()=>{return Public.getLineLength(endPointControlLine.line) > 20},
       )
 
       beginControlPointGrip.setGripPoint()
@@ -104,13 +104,16 @@ export class BezierShapePen extends LineShapePen {
     }
 
     const drawLoop = this.drawLoop
-    this.drawLoop = () => {
+
+
+    this.drawLoop = () => {  
       if (beginPointControlLine.context) beginPointControlLine.drawLoop()
       else beginPointControlLine.context = this.context
       if (endPointControlLine.context) endPointControlLine.drawLoop()
       else endPointControlLine.context = this.context
       //* DRAW BEZIER
-      if (this.context && this.endControlPoint) {
+  
+      if (this.context && this.endControlPoint) { //log('bez draw')
         this.context.noFill();
         this.context.strokeWeight(2)
         this.context.stroke('white')
@@ -142,7 +145,7 @@ export class BezierShapePen extends LineShapePen {
           }
         }
       },
-      exicute: (mousePressInfo) => {
+      execute: (mousePressInfo) => { log('mouseClickedOnControlPoint')
         const{mousePressPoint,
           controlPointClicked} = mousePressInfo
         const controlLinePen = controlPointClicked === this.beginControlPoint ? beginPointControlLine : endPointControlLine
@@ -156,9 +159,7 @@ export class BezierShapePen extends LineShapePen {
         this.defineEventFunction({
           mouseRelease: () => {
             controlLinePen.endPointIsSelected = false
-// this.pointsAnchoredToBeginPoint.push(this.beginControlPoint)
             this.setAnchoredPoints()
-
           }
         })
       }
@@ -178,7 +179,7 @@ export class BezierShapePen extends LineShapePen {
           return {mousePressPoint, gripPoint : endGrip.gripPoint, controlPoint: this.endControlPoint , controlLinePen : endPointControlLine  }
         }
       },
-      exicute: (mousePressInfo) => { 
+      execute: (mousePressInfo) => { 
         mousePressInfo.controlLinePen.endPointIsSelected = true
         this.defineEventFunction({
           mouseDragContinue: (mouseDragPoint = {
@@ -197,26 +198,20 @@ export class BezierShapePen extends LineShapePen {
             beginControlPointGrip.setGripPoint();
             endControlPointGrip.setGripPoint()
             mousePressInfo.controlLinePen.endPointIsSelected = false
-// this.pointsAnchoredToBeginPoint.push(this.beginControlPoint)
             this.setAnchoredPoints()
-// log(this.pointsAnchoredToBeginPoint)
-
           }
         })
       }
     }
     this.setMousePressEventToFirst('mouseClickedOnGrip')
-
-
-    // log({beginPoint,endPoint})
     if(beginPoint && endPoint){
-      // log({beginPoint,endPoint})
       this.sendMousePress(beginPoint)
       this.sendMouseDrag(endPoint)
       this.sendMouseRelease(endPoint)
-      // this.init()
     }
-    // log({beginPoint,endPoint})
+
+    if(beginControlPoint ) this.beginControlPoint.xy = beginControlPoint
+    if(endControlPoint ) this.endControlPoint.xy = endControlPoint
 
   } /**CLOSE CONSTRUCTOR */
   
@@ -229,4 +224,16 @@ export class BezierShapePen extends LineShapePen {
     }
   }
 
+  get shapeOutput (){
+    return [
+      'bezier',
+      this.bezier.beginPoint.x, this.bezier.beginPoint.y,
+      this.bezier.beginControlPoint.x, this.bezier.beginControlPoint.y,
+      this.bezier.endControlPoint.x, this.bezier.endControlPoint.y,
+      this.bezier.endPoint.x, this.bezier.endPoint.y,
+    ]
+  }
+
 }
+
+

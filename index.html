@@ -9,6 +9,9 @@
   <title>Document</title>
   <script src="https://cdn.jsdelivr.net/npm/p5@1.3.1/lib/p5.js"></script>
 
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+  <!-- <script src="lodash.js"></script> -->
+
   <link rel="stylesheet" href="main.css">
   <!-- <script type="module" src="WorkSpace.js"></script> -->
 
@@ -16,67 +19,73 @@
 </head>
 
 <body>
-  <h2>JSDraw</h2>
-  <div class="radio-toolbar">
-    <label>
-      <input type="radio" id="Line_button" name="pens" class='penButton' value = 'line'>
-      line
-    </label>
+  <div id='container'>
+    <h2 id='lbl'>JSDraw</h2>
+    <div class="radio-toolbar">
+      <label>
+        <input type="radio" id="Line_button" name="pens" class='penButton' value='line'>
+        line
+      </label>
 
-    <label>
-      <input type="radio" id="Arc_button" name="pens" class='penButton'>
-      Arc Shape
-    </label>
+      <label>
+        <input type="radio" id="Arc_button" name="pens" class='penButton'>
+        Arc Shape
+      </label>
 
-    <label>
-      <input type="radio" id="Circle_button" name="pens" class='penButton' >
-      Circle Series
-    </label>
+      <label>
+        <input type="radio" id="Circle_button" name="pens" class='penButton'>
+        Circle Series
+      </label>
 
-    <label>
-      <input type="radio" id="Line_Collection_button" name="pens" class='penButton'>
-      Line Coloection
-    </label>
+      <label>
+        <input type="radio" id="Line_Collection_button" name="pens" class='penButton'>
+        Line Coloection
+      </label>
 
-    <label>
-      <input type="radio" id="Line_Series_button" name="pens" class='penButton'>
-      Line Series
-    </label>
+      <label>
+        <input type="radio" id="Line_Series_button" name="pens" class='penButton'>
+        Line Series
+      </label>
 
-    <label>
-      <input type="radio" id="Bezier_Shape_button" name="pens" class='penButton'>
-      Bezier Shape
-    </label>
+      <label>
+        <input type="radio" id="Bezier_Shape_button" name="pens" class='penButton'>
+        Bezier Shape
+      </label>
 
-    <label>
-      <input type="radio" id="Arc_Shape_button" name="pens" class='penButton'>
-      ARC Shape
-    </label>
+      <label>
+        <input type="radio" id="Arc_Shape_button" name="pens" class='penButton'>
+        ARC Shape
+      </label>
 
 
 
-    <label>
-      <input type="radio" id="Composite_button" name="pens" class='penButton'>
-      Composite Shape Pen
-    </label>
+      <label>
+        <input type="radio" id="Composite_button" name="pens" class='penButton'>
+        Composite Shape Pen
+      </label>
 
-    <label>
-      <input type="radio" id="Universal_button" name="pens" class='penButton'>
-      Universal Shape
-    </label>
+      <label>
+        <input type="radio" id="Universal_button" name="pens" class='penButton'>
+        Universal Shape
+      </label>
 
-    <label>
-      <input type="radio" id="Vector_button" name="pens" class='penButton'>
-      Multi Pen
-    </label>
+      <label>
+        <input type="radio" id="Vector_button" name="pens" class='penButton'>
+        Multi Pen
+      </label>
 
+      <label>
+        <input type="radio" id="ShapeCut_button" name="pens" class='penButton'>
+        Shape Cut Pen
+      </label>
+
+    </div>
+    <p id='myConsole'>console:</p>
+
+    <div id='drawBox'>
+
+    </div>
   </div>
-
-
-  <div id='drawBox'>
-
-  </div>
-
 </body>
 
 </html>

@@ -15,6 +15,10 @@ import {
  import {
   cursorTracker , setMousePointToSnapPointIfInProximity
  } from './PenTools.js'
+ 
+ import {
+  DrawMark
+} from './DrawMarks.js';
 
 
 export class CircleSeriesPen extends PenConstruct {
@@ -237,7 +241,7 @@ export class CircleSeriesPen extends PenConstruct {
           .line(radiuLine.beginPoint.x, radiuLine.beginPoint.y, radiuLine.endPoint.x, radiuLine.endPoint.y)
       })
       this.arcOriginPointCollection.forEach(pInfo => {
-        State.drawPointCaptureHalo(this.context, pInfo.point, 'rgba(50%, 70%, 50%, 0.5)', 4, 1)
+        DrawMark.pointCaptureHalo(this.context, pInfo.point, 'rgba(50%, 70%, 50%, 0.5)', 4, 1)
       })
       this.linePen.drawLoop()
       this.context
@@ -252,9 +256,9 @@ export class CircleSeriesPen extends PenConstruct {
       if (this.returnSnap == null) {
         //EXIT
       } else if (this.returnSnap.isEngaged) {
-        State.drawPointCaptureHalo(this.context, this.returnSnap.point, 'rgba(0%, 70%, 0%, 0.5)', 12, 2)
+        DrawMark.pointCaptureHalo(this.context, this.returnSnap.point, 'rgba(0%, 70%, 0%, 0.5)', 12, 2)
       } else {
-        State.drawPointCaptureHalo(this.context, this.returnSnap.point, 'rgba(0%, 70%, 0%, 0.5)', 7, 1)
+        DrawMark.pointCaptureHalo(this.context, this.returnSnap.point, 'rgba(0%, 70%, 0%, 0.5)', 7, 1)
       }
     }
 
@@ -469,7 +473,7 @@ export class CircleSeriesPen extends PenConstruct {
       evaluateRequirements: (nothingIsDrawnYet = this.linePen.lineCollection.length == 0) => {
         return nothingIsDrawnYet
       }, //   PURE FUNCTION
-      exicute: (mousePressPoint) => {
+      execute: (mousePressPoint) => {
         logMessage("case 0: user to initialize radii line series")
         /** USER TO DRAW CIRCLE */
 
@@ -539,7 +543,7 @@ export class CircleSeriesPen extends PenConstruct {
           }
           return findings
         },
-        exicute: () => {
+        execute: () => {
           logMessage("case 1: initiate move of aperatus")
           this.returnSnap = {
             point: {
@@ -611,7 +615,7 @@ export class CircleSeriesPen extends PenConstruct {
           })()
           return findings
         },
-        exicute: () => {
+        execute: () => {
           logMessage("case 2: clear all selected points")
           this.defineEventFunction({
             mouseRelease: () => {
@@ -643,7 +647,7 @@ export class CircleSeriesPen extends PenConstruct {
           })()
           return findings
         },
-        exicute: () => {
+        execute: () => {
           logMessage("case 3: draw new radius line for new concentric circle")
           this.linePen.enableSnap = true
           this.linePen.sendMousePress(this.centerPoint)
@@ -737,7 +741,7 @@ export class CircleSeriesPen extends PenConstruct {
           })()
           return findings
         },
-        exicute: (userMousePressInfo = this.userMousePressInfo) => {
+        execute: (userMousePressInfo = this.userMousePressInfo) => {
           logMessage("case 4: select arc origin point")
           this.linePen.selectedPoints.append(userMousePressInfo.modifiedPressPoint)
           const mousePressPoint = userMousePressInfo.modifiedPressPoint
@@ -885,7 +889,7 @@ export class CircleSeriesPen extends PenConstruct {
           })()
           return findings
         },
-        exicute: (userMousePressInfo = this.userMousePressInfo) => {
+        execute: (userMousePressInfo = this.userMousePressInfo) => {
           logMessage("case 5: add to arc point selection")
           this.linePen.selectedPoints.append(userMousePressInfo.arcPoint)
           arcPointModifyStandard_setMouseDragMouseRelease(
@@ -918,7 +922,7 @@ export class CircleSeriesPen extends PenConstruct {
           })()
           return findings
         },
-        exicute: (userMousePressInfo = this.userMousePressInfo) => {
+        execute: (userMousePressInfo = this.userMousePressInfo) => {
           logMessage("case 6: select arc point")
           this.returnSnap = {
             point: {
@@ -974,7 +978,7 @@ export class CircleSeriesPen extends PenConstruct {
           })()
           return findings
         },
-        exicute: (userMousePressInfo = this.userMousePressInfo) => {
+        execute: (userMousePressInfo = this.userMousePressInfo) => {
           logMessage("case 7: draw free arc")
           const arcDirectionLockGate = {
             gate: 2.70,
@@ -1130,7 +1134,7 @@ export class CircleSeriesPen extends PenConstruct {
           })()
           return findings
         },
-        exicute: (userMousePressInfo = this.userMousePressInfo) => {
+        execute: (userMousePressInfo = this.userMousePressInfo) => {
           logMessage("case 8: begin rotate of arc")
           const mouseClickedRadiusLine = userMousePressInfo.radiusLine
           const selectionIsFull = this.selectedRadiusLines.size == this.radiiLineCollection.length

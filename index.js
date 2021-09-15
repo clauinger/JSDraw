@@ -36,6 +36,9 @@ const buttonList = [{
 }, {
   button: Vector_button,
   pen: 'multiShapePen_01'
+}, {
+  button: ShapeCut_button,
+  pen: 'shapeCutLinePen'
 }
 ]
 
@@ -51,10 +54,9 @@ buttonList.forEach(buttonAndPen => {
   button.addEventListener('change', x => {
     drawing.currentPen = pen
     if(checkedButton)checkedButton.parentElement.className = ''
-    log('selected')
+
     button.parentElement.className = 'selected'
-    // button.parentElement.style.background = 'blue'
-    // button.parentElement.style.color = 'white'
+
   })
   if (button.checked) {
     drawing.currentPen = pen
@@ -64,3 +66,16 @@ buttonList.forEach(buttonAndPen => {
 
   }
 })
+
+const setBg = () => {
+  const randomColor = Math.floor(Math.random()*16777215).toString(16);
+  document.body.style.backgroundColor = "#" + randomColor;
+}
+
+
+container.addEventListener('touchmove', function(e) {
+  if(e.target.className === 'p5Canvas'){
+    e.preventDefault();
+  }
+}, false);
+

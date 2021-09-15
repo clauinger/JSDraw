@@ -5,6 +5,10 @@ import {
   State
 } from './State.js'
 
+import {
+  DrawMark
+} from './DrawMarks.js';
+
 const {
   log
 } = console
@@ -85,9 +89,9 @@ export const CursorLineSwiper = (
       return
     }
     if (returnSnapIsEngaged) {
-      State.drawPointCaptureHalo(context, returnSnapPoint, 'rgba(0%, 70%, 0%, 0.5)', 12, 2)
+      DrawMark.pointCaptureHalo(context, returnSnapPoint, 'rgba(0%, 70%, 0%, 0.5)', 12, 2)
     } else {
-      State.drawPointCaptureHalo(context, returnSnapPoint, 'rgba(0%, 70%, 0%, 0.5)', 7, 1)
+      DrawMark.pointCaptureHalo(context, returnSnapPoint, 'rgba(0%, 70%, 0%, 0.5)', 7, 1)
     }
   }
 
@@ -188,10 +192,10 @@ export const CursorLineSwiper = (
       context.noFill()
       context.strokeWeight(penDrift * 2);
       context.line(closestLinePoint.x, closestLinePoint.y, modifiedCursorPoint.x, modifiedCursorPoint.y)
-      State.drawTickCrossMark(context, coLinearMousePressPoint, 'rgba(0%, 70%, 0%, 0.5)', 3, .5)
+      DrawMark.tickCrossMark(context, coLinearMousePressPoint, 'rgba(0%, 70%, 0%, 0.5)', 3, .5)
       context.stroke('rgba(100%, 0%, 0%, 1)')
       context.strokeWeight(.5);
-      State.drawTickCrossMark(context, modifiedCursorPoint, 'rgba(100%, 0%, 0%, 1)', 3, .5)
+      DrawMark.tickCrossMark(context, modifiedCursorPoint, 'rgba(100%, 0%, 0%, 1)', 3, .5)
 
     },
   }
@@ -235,20 +239,23 @@ export class SelectionSet extends Set {
   }
 }
 
-export const startMousePressPointTimer = ( inputs ) => {
-  let {context, 
+export const startMousePressPointTimer = (inputs) => {
+  let {
+    context,
     mousePressPoint,
     targetPoint,
-    timeDuration = 700, 
+    timeDuration = 700,
     startTime = Date.now(),
-    penDrift = 5, 
-    runFunction = ()=>{log('Switch Command')},
+    penDrift = 5,
+    runFunction = () => {
+      log('Switch Command')
+    },
     isOutOfBounds = false
   } = inputs
   let isCanceled = false
-  const _timeDuration  = timeDuration
+  const _timeDuration = timeDuration
 
-  if(!targetPoint && mousePressPoint )targetPoint = {
+  if (!targetPoint && mousePressPoint) targetPoint = {
     x: mousePressPoint.x,
     y: mousePressPoint.y
   }
@@ -256,31 +263,32 @@ export const startMousePressPointTimer = ( inputs ) => {
     const diff = Date.now() - startTime
     return diff / timeDuration
   }
-  function getMarkSize(){
+
+  function getMarkSize() {
     return (1 - getTimeFraction()) * 40
   }
   return {
-    sendMouseDrag: (mouseDragPoint)=> {
+    sendMouseDrag: (mouseDragPoint) => {
       const dist = Public.getDistanceTwoPoints(targetPoint, mouseDragPoint)
       const dragIsOutside = dist > penDrift
       const mouseOut = !isOutOfBounds && dragIsOutside
       const mouseIn = isOutOfBounds && !dragIsOutside
 
-      if(mouseIn) /** RESTART THE TIMER, IN SLOW TIME MODE*/ {
+      if (mouseIn) /** RESTART THE TIMER, IN SLOW TIME MODE*/ {
         isOutOfBounds = false
         timeDuration = _timeDuration * 1.5
         startTime = Date.now()
-      } else if(mouseOut) /** KILL THE TIMER */ {
+      } else if (mouseOut) /** KILL THE TIMER */ {
         isOutOfBounds = true
       }
     },
 
     drawLoop: () => {
-      if(isCanceled)return
-      if(isOutOfBounds) return
-      const timefac  = getTimeFraction()
+      if (isCanceled) return
+      if (isOutOfBounds) return
+      const timefac = getTimeFraction()
 
-      if(timefac >= 1){
+      if (timefac >= 1) {
         isCanceled = true
         runFunction(targetPoint)
       }
@@ -301,7 +309,7 @@ export const CursorTimer = (context, timeDuration = 2000, penDrift = 5, runFunct
   let functionAlive = false
   let startTime
   let counter = 1
-  const _runFunction = () => { 
+  const _runFunction = () => {
     if (functionAlive) {
       runFunction()
       functionAlive = false
@@ -323,7 +331,7 @@ export const CursorTimer = (context, timeDuration = 2000, penDrift = 5, runFunct
       functionAlive = true
     },
 
-    currentPenPoint: (newPoint) => { 
+    currentPenPoint: (newPoint) => {
       if (functionAlive === false) return
       const distance = Public.getLengthTwoPoints(mousePressPoint, newPoint)
       if (isOutOfBounds) {
@@ -347,11 +355,13 @@ export const CursorTimer = (context, timeDuration = 2000, penDrift = 5, runFunct
       return mousePressPoint
     },
 
-        isActive : ()=>{return functionAlive && isOutOfBounds === false },
+    isActive: () => {
+      return functionAlive && isOutOfBounds === false
+    },
     draw: () => {
-      if(!functionAlive) return
-      if(!mousePressPoint)return
-      if(isOutOfBounds) return
+      if (!functionAlive) return
+      if (!mousePressPoint) return
+      if (isOutOfBounds) return
       // log(timeFraction())
       context
         .stroke('rgba(100%, 0%, 0%, 1)')
@@ -359,7 +369,7 @@ export const CursorTimer = (context, timeDuration = 2000, penDrift = 5, runFunct
         .strokeWeight(1)
         .circle(mousePressPoint.x, mousePressPoint.y, (timeFraction() * 10))
     },
-    cancel: () => { 
+    cancel: () => {
       if (functionAlive) {
         clearTimeout(timer)
         functionAlive = false
@@ -398,28 +408,28 @@ export const cursorTracker = (totalDistanceBoundry = 20) => {
   }
 }
 
-export function setMousePointToSnapPointIfInProximity (mousePoint, snapPerameter){
+export function setMousePointToSnapPointIfInProximity(mousePoint, snapPerameter) {
   /** 
    * CHECK IF mousePoint IS IN PROXIMITY OF snapPerameter
    * IF SO THEN MODIFY mousePoint AND snapPerameter.isEngaged
    * return bool
-  */
-  if (snapPerameter === null){
-      return null
+   */
+  if (snapPerameter === null) {
+    return null
   }
   const cursorDist = Public.getLengthTwoPoints(snapPerameter.point, mousePoint)
   const snapIsEngaged = cursorDist < snapPerameter.proximityDistance
-  if(snapIsEngaged){
-      mousePoint.x = snapPerameter.point.x
-      mousePoint.y = snapPerameter.point.y
-      snapPerameter.isEngaged = true
-      
-      return true
+  if (snapIsEngaged) {
+    mousePoint.x = snapPerameter.point.x
+    mousePoint.y = snapPerameter.point.y
+    snapPerameter.isEngaged = true
+
+    return true
   } else {
-      snapPerameter.isEngaged = false
-      return false
+    snapPerameter.isEngaged = false
+    return false
   }
-} 
+}
 
 export function modifyMousePointIfSnapIsEngaged(mousePoint, returnSnapObject) {
   if (returnSnapObject == null) {
@@ -438,86 +448,225 @@ export function modifyMousePointIfSnapIsEngaged(mousePoint, returnSnapObject) {
 
 
 
-export function setSnapPointEngaged (mousePoint, returnSnapObject, modifyMousePointObject = null){
+export function setSnapPointEngaged(mousePoint, returnSnapObject, modifyMousePointObject = null) {
   /** return null or number (snap distance)
    *  modifyMousePointObject is optional; if provided (non null) then the state 
    *  of that object will be modified
-  */
- if (returnSnapObject == null){
-     return null
- }
+   */
+  if (returnSnapObject == null) {
+    return null
+  }
   const cursorDist = Public.getLengthTwoPoints(returnSnapObject.point, mousePoint)
   const snapIsEngaged = cursorDist < returnSnapObject.proximityDistance
-  if(snapIsEngaged == false){
-      returnSnapObject.isEngaged = false
-      // log(cursorDist)
-      modifyMousePointObject.mouseX = mousePoint.x
-      modifyMousePointObject.mouseY = mousePoint.y
-      return null
-  } else if (modifyMousePointObject){
-      // log(333)
-      modifyMousePointObject.mouseX = returnSnapObject.point.x
-      modifyMousePointObject.mouseY = returnSnapObject.point.y
-  } 
+  if (snapIsEngaged == false) {
+    returnSnapObject.isEngaged = false
+    // log(cursorDist)
+    modifyMousePointObject.mouseX = mousePoint.x
+    modifyMousePointObject.mouseY = mousePoint.y
+    return null
+  } else if (modifyMousePointObject) {
+    // log(333)
+    modifyMousePointObject.mouseX = returnSnapObject.point.x
+    modifyMousePointObject.mouseY = returnSnapObject.point.y
+  }
   returnSnapObject.isEngaged = true
   return cursorDist
-} 
+}
 
 
-export const grip = (context, reachLocation, color = 'rgba(0%, 0%, 50%, 0.3)' )=>{ 
-  let gripPoint = {x:0,y:0}
-  function setGripPoint (){ 
-    const gp = reachLocation()
-    if(!gp) return
-    gripPoint.x = gp.x
-    gripPoint.y = gp.y
+//** ------------------------------- */
+export const gripMark = (context, anchorPoint = {x:0,y:0}, color = 'rgba(30%, 30%, 10%, .7)') => {
+  const mark = {
+    radius: 5,
+    lineWidth: 5,
+    color
   }
-  function verifyMousePress (mousePressPoint){
-    if(_hidden)return false
-    if(!gripPoint)return false
-    if (Public.getUserMouseClickOnPoint(mousePressPoint,7,[gripPoint])) return true
+  const offsetDistance = {x:0,y:0}
+  let mousePressPoint = null
+  let _hidden = false
+  let dragPoint = null
+
+  function verifyMousePress(_mousePressPoint) {
+    if (_hidden) return false
+    const mousePress = Public.getUserMouseClickOnPoint(_mousePressPoint, 10, [getXY()])
+    if (mousePress) {
+      mousePressPoint = mousePress
+
+      dragPoint = {x: mousePress.x,y:mousePress.y} 
+      return {mousePressPoint, gripMarkPoint : getXY() }
+    }
     return false
   }
-  const mark = {radius : 6, lineWidth : 2, color}
+  function getXY(){
+    return {x: anchorPoint.x  + offsetDistance.x , y: anchorPoint.y  + offsetDistance.y}
+  }
+  function setXY(newValue){
+    offsetDistance.x = newValue.x - anchorPoint.x  
+    offsetDistance.y = newValue.y - anchorPoint.y  
+  }
+   
+  return {
+    get x(){
+      return anchorPoint.x  + offsetDistance .x
+    },
+    set x(newValue){
+      offsetDistance.x = newValue - anchorPoint.x  
+    },
+    get y(){
+      return anchorPoint.y  + offsetDistance.y
+    },
+    set y(newValue){
+      offsetDistance.y = newValue - anchorPoint.y 
+    },
+    get xy(){
+      return { x:this.x, y:this.y}
+    },
+    set xy(newPoint){
+      this.x = newPoint.x
+      this.y = newPoint.y
+    },
+    resetLocation : (newArchorPoint)=>{
+      offsetDistance = {x:0,y:0}
+
+    },
+
+    draw: (ctx = context) => {
+      if (!ctx) return
+      if (_hidden) return
+ 
+      DrawMark.pointCaptureHalo(ctx, getXY(), mark.color, mark.radius, mark.lineWidth)
+    },
+    setContext: (ctx) => {
+      context = ctx
+    },
+    verifyMousePress,
+
+    dragMove : (mouseDragPoint)=>{ 
+      if(!dragPoint)return 
+      State.movePoints(mousePressPoint,mouseDragPoint,[dragPoint])
+      setXY(dragPoint)
+    },
+    mouseRelease : (mousePoint)=>{
+      mousePressPoint = null
+    },
+    setAnchorPoint : (newAnchor)=>{
+      anchorPoint = newAnchor
+    },
+
+  }
+}
+
+export const gripDimension = (context, _linePen, angle = 90, color = 'rgba(50%, 0%, 50%, 0.3)') => {
+  let anchorPoint = _linePen.beginPoint
+  let _gripMark
+  let distance = 20
+  let lineDistance = 20
+  let setPointFunction
+
+  //** FOR PURPOSES OF MANAGING DID SET FUNCTION, A UNIQUE INSTANCE OF SET POINT FUNCTION IS GENERATED */
+  function generateSetPointFunction (referncePoint){
+    return {function : ()=>{
+      const linePoint = lineDistance === 0 ? referncePoint : Public.getEndPoint(referncePoint,lineDistance,_linePen.angle)
+      _gripMark.setAnchorPoint(Public.getEndPoint(linePoint,distance,_linePen.angle + angle))}}
+  } 
+
+  function removeDidSetFuntionFromLinePenPoints (){
+    _linePen.endPoint.removeDidSetFunction(setPointFunction)
+    _linePen.beginPoint.removeDidSetFunction(setPointFunction)
+  }
+
+  function init(){
+    if(anchorPoint)return
+    if(!_linePen.beginPoint)return
+    anchorPoint = _linePen.beginPoint
+    _gripMark = gripMark(context, _linePen.beginPoint, color)
+    setPointFunction = generateSetPointFunction(_linePen.beginPoint).function
+    setPointFunction()
+    _linePen.beginPoint.appendDidSet(setPointFunction)
+    _linePen.endPoint.appendDidSet(setPointFunction)
+  }
+
+  init()
+  return {
+    draw : ()=>{ 
+      init()
+      if(_gripMark)_gripMark.draw()
+    },
+    setContext: (ctx) => {
+      context = ctx
+    },
+    verifyMousePress : (point)=>{  if(_gripMark) return _gripMark.verifyMousePress(point)},
+    dragMove :  (point)=>{ if(_gripMark)_gripMark.dragMove(point)},
+    mouseRelease : (point)=>{ if(_gripMark) _gripMark.mouseRelease(point)},
+    disassociateWithLine : ()=>{
+      removeDidSetFuntionFromLinePenPoints()
+      _linePen = null
+    }
+  }
+}
+
+//*** ------------------------------------ */
+
+export const grip = (context, resetLocation, color = 'rgba(0%, 0%, 50%, 0.3)') => {
+  let gripPoint = {
+    x: 0,
+    y: 0
+  }
+
+  function setGripPoint(specifiedPoint = {}) {
+    const gp = resetLocation()
+    if (!gp) return
+    gripPoint.x = specifiedPoint.x || gp.x
+    gripPoint.y = specifiedPoint.y || gp.y
+  }
+
+  function verifyMousePress(mousePressPoint) {
+    if (_hidden) return false
+    if (!gripPoint) return false
+    if (Public.getUserMouseClickOnPoint(mousePressPoint, 7, [gripPoint])) return true
+    return false
+  }
+  const mark = {
+    radius: 6,
+    lineWidth: 2,
+    color
+  }
 
   let _hidden = false
   return {
-    draw:(ctx = context)=>{
-      if(!ctx)return
-      if(!gripPoint)return
-      if(_hidden)return
-      State.drawPointCaptureHalo(ctx, gripPoint, mark.color, mark.radius, mark.lineWidth)
+    draw: (ctx = context) => {
+      if (!ctx) return
+      if (!gripPoint) return
+      if (_hidden) return
+      DrawMark.pointCaptureHalo(ctx, gripPoint, mark.color, mark.radius, mark.lineWidth)
     },
-    setContext :(ctx)=>{
+    setContext: (ctx) => {
       context = ctx
     },
     setGripPoint,
     verifyMousePress,
-    get gripPoint(){
+    get gripPoint() {
       return gripPoint
     },
-    get isToggledOn(){
+    get isToggledOn() {
       return mark.radius === 8
     },
-    get hidden (){
+    get hidden() {
       return _hidden
     },
-    set hidden (bool){
+    set hidden(bool) {
       _hidden = bool
     },
-    get drawParameters(){
+    get drawParameters() {
       return mark
     },
-
-
-    toggleOn : (on)=>{
-      if(on === undefined){
-        on = mark.radius === 8? false : true
+    toggleOn: (on) => {
+      if (on === undefined) {
+        on = mark.radius === 8 ? false : true
       }
-      if(on){
+      if (on) {
         mark.radius = 8
         mark.lineWidth = 2
-        // mark.color = 'rgba(100%, 0%, 100%, 0.9)'
       } else {
         mark.radius = 6
         mark.lineWidth = 2
@@ -527,79 +676,221 @@ export const grip = (context, reachLocation, color = 'rgba(0%, 0%, 50%, 0.3)' )=
   }
 }
 
-export const LinePointSnapTool = ( _context, _proximityDistance = 5)=>{ 
-  let _snapPoint, _linePoint,_snapPointCollection , oppositePoint
+export const LinePointSnapTool = (_context, _proximityDistance = 5) => {
+  let _snapPoint, _linePoint, _snapPointCollection, oppositePoint
 
-  function setLinePoint(newPoint){
+  function setLinePoint(newPoint) {
     _linePoint = newPoint
     // NOW FIND AN OPPOSITE POINT TO DRAW
     const parentReference = newPoint.lineReference || newPoint.shapeReference || null
-    if(!parentReference)return
-    oppositePoint = parentReference.beginPoint === _linePoint ? 
-      parentReference.endPoint : 
+    if (!parentReference) return
+    oppositePoint = parentReference.beginPoint === _linePoint ?
+      parentReference.endPoint :
       parentReference.beginPoint
 
   }
   return {
-    verifyMouseContact : (mousePoint)=>{ 
-      if(!_linePoint) return
-      _snapPoint = Public.getUserMouseClickOnPoint(mousePoint,_proximityDistance,_snapPointCollection )
+    verifyMouseContact: (mousePoint) => {
+      if (!_linePoint) return
+      _snapPoint = Public.getUserMouseClickOnPoint(mousePoint, _proximityDistance, _snapPointCollection)
       return _snapPoint ? true : false
     },
-    draw: ()=>{     
-      if(!_snapPoint)return
-      if(!_context)return
+    draw: () => {
+      if (!_snapPoint) return
+      if (!_context) return
       _context.stroke('rgba(255,0,0,0.15)')
       _context.strokeWeight(4)
       _context.fill('rgba(255,0,0,0.25)')
       _context.circle(_snapPoint.x, _snapPoint.y, 13)
-      if(oppositePoint){ //**THEN DRAW PREVIEW LINE */
+      if (oppositePoint) { //**THEN DRAW PREVIEW LINE */
         _context.strokeWeight(2)
         _context.stroke('white')
-        _context.line(oppositePoint.x,oppositePoint.y,_snapPoint.x,_snapPoint.y)
+        _context.line(oppositePoint.x, oppositePoint.y, _snapPoint.x, _snapPoint.y)
       }
       _context.strokeWeight(1)
       _context.stroke('rgba(0,0,0,1)')
     },
-    get linePoint(){
+    get linePoint() {
       return _linePoint
     },
-    set linePoint(newPoint){
+    set linePoint(newPoint) {
       setLinePoint(newPoint)
     },
-    get context(){
+    get context() {
       return _context
     },
-    set context(ctx){
+    set context(ctx) {
       _context = ctx
     },
 
-    get snapPointCollection (){
+    get snapPointCollection() {
       return _snapPointCollection
     },
-    set snapPointCollection (arr){
+    set snapPointCollection(arr) {
       _snapPointCollection = arr
     },
     //_proximityDistance
-    get proximityDistance (){
+    get proximityDistance() {
       return _proximityDistance
     },
-    set proximityDistance (num){
+    set proximityDistance(num) {
       _proximityDistance = num
     },
-    get snapToPoint (){
+    get snapToPoint() {
       return _snapPoint
     },
-    setup : (linePoint, snapPointCollection, context)=>{
+    setup: (linePoint, snapPointCollection, context) => {
       setLinePoint(linePoint)
       _snapPointCollection = snapPointCollection
       _context = context
     },
-    cancel : ()=>{
+    cancel: () => {
       _linePoint = null
       _snapPoint = null
     }
 
-    
+
+  }
+}
+
+
+export const rotateGrip = (context, line, _setGripPointFunction, _proximityDistance = 5) => {
+  let {
+    beginPoint: _beginPoint,
+    endPoint: _endPoint
+  } = line
+  let point
+
+  let rotationAngle = 0,
+    currentlyIsUserDragRotating = false
+  let nestedGripMousePressPoint = null,
+    startMousePressAngle, startAngle
+
+  let angle = 0
+
+  const setGripPointFunction = (specifiedPivotPoint) => { //log(specifiedPivotPoint)
+    point = _setGripPointFunction(specifiedPivotPoint)
+    grip1.setGripPoint()
+    grip2.setGripPoint()
+    // grip3.setGripPoint()
+    // nestedGripMousePressPoint = null
+    rotationAngle = 0
+    currentlyIsUserDragRotating = false
+    return point
+  }
+
+  const mainGrip = grip(context, setGripPointFunction)
+
+
+  // const grip1 = grip(context, grip1Set )
+  const grip1 = grip(context, () => {
+    const angl = Public.getAngle(_beginPoint, _endPoint) + rotationAngle
+    const pt = Public.getEndPoint(mainGrip.gripPoint, 30, angle - 90)
+
+    // const pt = Public.getEndPoint(mainGrip.gripPoint, 30, angl - 90)
+    return pt
+  })
+
+
+  const grip2 = grip(context, () => {
+    const angl = Public.getAngle(_beginPoint, _endPoint) + rotationAngle
+    const pt = Public.getEndPoint(mainGrip.gripPoint, 30, angle + 90)
+    // const pt = Public.getEndPoint(mainGrip.gripPoint, 30, angl + 90)
+    return pt
+  })
+  let didSetRotateFunc = ()=>{}
+  return {
+    draw: (ctx = context) => {
+      if (!ctx) return
+      if (!mainGrip.gripPoint) return
+      if (mainGrip.hidden) return
+      DrawMark.pointCaptureHalo(ctx, mainGrip.gripPoint, 'orange', 30, 1)
+      grip1.draw()
+      grip2.draw()
+      // grip3.draw()
+    },
+
+    verifyMousePress: (mousePressPoint) => {
+      const grip1Press = grip1.verifyMousePress(mousePressPoint) ? {
+        nestedGrip: grip1,
+        mousePressPoint
+      } : null
+      const grip2Press = grip2.verifyMousePress(mousePressPoint) ? {
+        nestedGrip: grip2,
+        mousePressPoint
+      } : null
+      if (grip1Press || grip2Press) {
+        nestedGripMousePressPoint = mousePressPoint
+        startMousePressAngle = Public.getAngle(mainGrip.gripPoint, mousePressPoint)
+        currentlyIsUserDragRotating = true
+        // startLineAngle = Public.getAngle(_beginPoint, _endPoint)
+        // startLineAngle = Public.getAngle(mainGrip.gripPoint, mousePressPoint)
+        startAngle = angle
+        // log(startLineAngle)
+        // startAngle = Public.getAngle(grip1.gripPoint,grip2.gripPoint) + 90
+        // log(grip2.gripPoint)
+        // log(grip2.gripPoint)
+      }
+      return grip1Press || grip2Press
+    },
+
+    beginRotate: (mousePressPoint) => {
+      nestedGripMousePressPoint = mousePressPoint
+      startMousePressAngle = Public.getAngle(mainGrip.gripPoint, mousePressPoint)
+      currentlyIsUserDragRotating = true
+      startAngle = angle
+      // startLineAngle = Public.getAngle(_beginPoint, _endPoint)
+      // startAngle = Public.getAngle(grip1.gripPoint,grip2.gripPoint) + 90
+
+    },
+
+    dragRotate(mouseDragPoint) { 
+      if (!nestedGripMousePressPoint) return
+
+      angle = Public.getAngle(mainGrip.gripPoint, mouseDragPoint) - startMousePressAngle + startAngle
+      rotationAngle = angle - startMousePressAngle
+  
+      grip1.setGripPoint()
+      grip2.setGripPoint()
+      // log(Public.getAngle(grip1.gripPoint,grip2.gripPoint) + 90)
+      didSetRotateFunc()
+    },
+
+    get angle (){
+      return angle
+    },
+
+    setContext: (ctx) => {
+      context = ctx
+      mainGrip.setContext(ctx)
+    },
+
+    setGripPoint: (specifiedPoint) => {
+      mainGrip.setGripPoint(specifiedPoint)
+      grip1.setGripPoint()
+      grip2.setGripPoint()
+
+    },
+    didSetRotate : (func)=>{
+
+    },
+
+    get angle() {
+      return angle
+    },
+
+    set angle(newAngle) {
+
+      angle = newAngle
+      grip1.setGripPoint()
+      grip2.setGripPoint()
+    },
+
+    get centerPoint() {
+      return mainGrip.gripPoint
+    },
+    get rotationAngle() {
+      return rotationAngle
+    }
   }
 }

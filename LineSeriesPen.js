@@ -13,6 +13,9 @@ import {
  PenConstruct
 } from './PenConstruct.js'
 
+import {
+  DrawMark
+} from './DrawMarks.js';
 
 
 
@@ -424,7 +427,7 @@ export class LineSeriesPen extends PenConstruct {
 
      return findings
     },
-    exicute: (userMousePressInfo = this.userMousePressInfo) => {
+    execute: (userMousePressInfo = this.userMousePressInfo) => {
      this.logMessage('case 2: user to start draw new line')
      const drawBeginPoint = userMousePressInfo.capturedPoint
      var userTapOnPoint = userMousePressInfo.capturedPoint
@@ -601,7 +604,7 @@ export class LineSeriesPen extends PenConstruct {
      })()
      return findings
     },
-    exicute: (userMousePressInfo = this.userMousePressInfo) => {
+    execute: (userMousePressInfo = this.userMousePressInfo) => {
      this.logMessage('case 3: user to manipulate point and active selection')
      let userTapOnPoint = userMousePressInfo.point
      this.defineEventFunction({
@@ -705,7 +708,7 @@ export class LineSeriesPen extends PenConstruct {
      return findings
     },
 
-    exicute: (mousePressInfo = this.userMousePressInfo) => {
+    execute: (mousePressInfo = this.userMousePressInfo) => {
      this.logMessage('case 3: user initiate line tap')
      let userTapOnLine = mousePressInfo.line
      if (selectedLineTracker.line == null) {
@@ -883,7 +886,7 @@ export class LineSeriesPen extends PenConstruct {
 
      return findings
     },
-    exicute: () => {
+    execute: () => {
      this.logMessage('case 5: user to reduce active selection')
      if (this.hasSelectedLines) {
       this.logMessage('     5a) clear all selected lines')
@@ -928,7 +931,7 @@ export class LineSeriesPen extends PenConstruct {
      }
      return findings
     },
-    exicute: () => {
+    execute: () => {
      this.logMessage('case 7 draw new detached line')
 
      this.defineEventFunction({
@@ -996,8 +999,7 @@ export class LineSeriesPen extends PenConstruct {
    evaluateRequirements: (nothingIsDrawnYet = this.lineCollection.length == 0) => {
     return nothingIsDrawnYet
    },
-   exicute: (mousePressPoint) => {
-
+   execute: (mousePressPoint) => {
     this.logMessage('init case: user to initialize line series')
     makeNewLine(mousePressPoint.x, mousePressPoint.y);
     beginDrawTriggered = true
@@ -1024,8 +1026,6 @@ export class LineSeriesPen extends PenConstruct {
       }
      }
     })
-
-
    },
   }
   this.mousePressSetup = (mousePressPoint) => {
@@ -1737,7 +1737,7 @@ export class LineSeriesPen extends PenConstruct {
 
  drawSelectedPoints() {
   for (let i = 0; i < this.selectedPoints.size; i++) {
-   State.drawPointCaptureHalo(
+   DrawMark.pointCaptureHalo(
     this.context,
     /*  atPoint         */
     [...this.selectedPoints][i],
@@ -1750,7 +1750,7 @@ export class LineSeriesPen extends PenConstruct {
    )
   }
  }
- // State.drawPointCaptureHalo(atPoint, rgbColorString, haloRadius, haloLineWeight = .5) {
+ // DrawMark.pointCaptureHalo(atPoint, rgbColorString, haloRadius, haloLineWeight = .5) {
  //     this.context
  //     .stroke(rgbColorString)
  //     .noFill()
@@ -1777,7 +1777,7 @@ export class LineSeriesPen extends PenConstruct {
   this.context
     .fill(0, 15, 255, 255)
     .strokeWeight(1)
-  State.drawPointCaptureHalo(
+  DrawMark.pointCaptureHalo(
     this.context,
     /*  atPoint         */
     this.pointNodeSnapList.isInContactWith,

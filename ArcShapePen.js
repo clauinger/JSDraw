@@ -19,15 +19,19 @@ export class ArcShapePen extends LineShapePen {
     context,
     beginPoint = null,
     endPoint = null,
+    radius,
+    direction ='clockwise',
   ) {
     super(context, beginPoint, endPoint)
-    this.lineColor = GHOST_COLOR//'rgba(10%, 90%, 80%, 1)'
-
+    this.lineColor = GHOST_COLOR 
     this.centerLocationGrip = NULL_OBJECT
     this.crossAxisLengthGrip = NULL_OBJECT 
     this.rotateArcGrip = NULL_OBJECT
     this.mainAxisControlLine = NULL_OBJECT
     this.crossAxisControlLine = NULL_OBJECT
+
+    this.centerPoint = null
+    this.crossAxisRadius
 
     this.didInitEndPoint = ()=>{ 
       this.crossAxisLengthGrip = grip(
@@ -72,16 +76,17 @@ export class ArcShapePen extends LineShapePen {
       this.rotateArcGrip.setGripPoint()
     }
     const drawLoop = this.drawLoop
-    this.drawLoop = () => {
+    this.drawLoop = () => { 
+      if(!this.beginPoint)return
       drawLoop()
-      if(this.centerPoint) {
+      if(this.centerPoint) { 
         this.context.noFill();
         this.context.strokeWeight(1)
         this.context.stroke(GHOST_COLOR)
         this.context.circle(this.centerPoint.x, this.centerPoint.y, this.crossAxisRadius * 2)
       }
       this.crossAxisLengthGrip.draw()
-      if(this.arcIsEstablished){
+      if(this.arcIsEstablished){ 
         this.centerLocationGrip.draw()
         this.rotateArcGrip.draw()
       }
@@ -91,15 +96,17 @@ export class ArcShapePen extends LineShapePen {
 
       //* DRAW ARC
       const arc = this.arc
-      if (arc) {
-        this.context.noFill();
-        this.context.strokeWeight(2)
-        this.context.stroke('white')
+      this.context.noFill();
+      this.context.strokeWeight(2)
+      this.context.stroke('white')
+      if (arc) { 
+
         this.context.arc( arc.x, arc.y, arc.diameter, arc.diameter, arc.beginAngle, arc.endAngle)
+      } else {
+        this.context.line( this.beginPoint.x, this.beginPoint.y, this.endPoint.x, this.endPoint.y )
       }
     }
-    this.centerPoint = null
-    this.crossAxisRadius
+
     let arcHeightAtMousePress
     let arcProportionAtMousePress
     this.mousePressSetup = () => {
@@ -143,7 +150,12 @@ export class ArcShapePen extends LineShapePen {
       coordinateCrossAxisForArcHeight()
     }
 
-    const coordinateCrossAxisForArcHeight = (arcHeight = arcHeightAtMousePress)=>{ 
+    const coordinateCrossAxisForArcHeight = (arcHeight = arcHeightAtMousePress )=>{ 
+      if(!arcHeight){
+        //** ARC HEIGHT AT MOUSE PRESS WAS NEVER ESTABLISHED. SO WE WILL DO IT NOW */
+        arcHeightAtMousePress = this.arcHeight
+        arcHeight = arcHeightAtMousePress
+      }
       const perpFactor =  this.direction === 'clockwise' ? -90 : 90
       const angle = Public.getLineAngle(this.line) + perpFactor 
       const newMainAxisEndPoint = Public.getEndPoint(this.midPoint, arcHeight, angle)
@@ -166,14 +178,14 @@ export class ArcShapePen extends LineShapePen {
       this.crossAxisControlLine.beginPoint.xy = Public.getEndPoint(this.centerPoint,this.crossAxisRadius,this.angle + perpFactor)
     }
 
-    const coordinateMainAxisLine = () => {
+    const coordinateMainAxisLine = () => { 
       if (!this.arcIsEstablished) return
       const radius = this.crossAxisRadius
       this.mainAxisControlLine.beginPoint.xy = Public.getEndPoint(this.centerPoint, radius,this.mainAxisAngle)
       this.mainAxisControlLine.endPoint.xy = Public.getEndPoint(this.centerPoint, radius,this.mainAxisAngle - 180)
     }
 
-    const initArcParameters = ()=>{
+    const initArcParameters = ()=>{ 
       this.crossAxisControlLine = new LineShapePen(this.context,this.midPoint,this.midPoint)
       this.mainAxisControlLine = new LineShapePen(this.context,this.midPoint,this.midPoint)
       this.mainAxisControlLine.renderOutput = false
@@ -190,9 +202,11 @@ export class ArcShapePen extends LineShapePen {
         mousePressPoint,
         grip = this.crossAxisLengthGrip ,
       )=>{ 
+        if(!grip)return
+        if(!grip.verifyMousePress)return
         if(grip.verifyMousePress(mousePressPoint))return {mousePressPoint, gripPoint : grip.gripPoint}
       },
-      exicute: (mousePressInfo) => { 
+      execute: (mousePressInfo) => {
         if(this.crossAxisControlLine === NULL_OBJECT) initArcParameters()
         this.crossAxisControlLine.endPointIsSelected = true
         const angle = this.angle + 90
@@ -232,6 +246,7 @@ export class ArcShapePen extends LineShapePen {
             this.crossAxisLengthGrip.setGripPoint()
             this.centerLocationGrip.setGripPoint()
             this.rotateArcGrip.setGripPoint()
+            arcHeightAtMousePress = this.arcHeight
           }
         })
       }
@@ -245,9 +260,10 @@ export class ArcShapePen extends LineShapePen {
         arcIsEstablished = this.arcIsEstablished
       )=>{
         if(!arcIsEstablished)return
+        if(!grip.verifyMousePress)return
         if(grip.verifyMousePress(mousePressPoint))return {mousePressPoint, grip}
       },
-      exicute: (mousePressInfo) => {
+      execute: (mousePressInfo) => { 
         this.centerLocationGrip.toggleOn(true)
         this.crossAxisLengthGrip.toggleOn(false)
         const lineColor = this.lineColor
@@ -299,10 +315,11 @@ export class ArcShapePen extends LineShapePen {
         grip = this.rotateArcGrip ,
         arcIsEstablished = this.arcIsEstablished
       )=>{
+   
         if(!arcIsEstablished)return
         if(grip.verifyMousePress(mousePressPoint))return {mousePressPoint}
       },
-      exicute: (mousePressInfo) => { 
+      execute: (mousePressInfo) => { 
         const refernceLine = {beginPoint:this.centerPoint,endPoint:this.rotateArcGrip.gripPoint}
         const pointCollection = [
           this.beginPoint,
@@ -329,8 +346,43 @@ export class ArcShapePen extends LineShapePen {
         })
       } 
     }
+    this.refreshArcPoints = (minArcLength = 10)=>{
+      if(!this.direction) return
+      const isClockwise  = this.direction  === 'clockwise'
+      const beginAngle = Public.getAngle(this.centerPoint, this.beginPoint)
+      let endAngle = Public.getAngle(this.centerPoint, this.endPoint)
+      if(endAngle < beginAngle && isClockwise) endAngle += 360
+      if(endAngle > beginAngle && isClockwise === false) endAngle -= 360
+      const centerAngle =  isClockwise ? endAngle - beginAngle : beginAngle - endAngle
+    
+      const angleLength = Math.abs(centerAngle) * (Math.PI / 180) * this.radius
+      const div = Math.abs(Math.round(angleLength / minArcLength))
+      let segmentAngle = centerAngle / div 
+      if(!isClockwise) segmentAngle *= -1
+      arcPoints = []
+      for (let index = 0; index < div; index++) {
+        const ang = beginAngle + (index * segmentAngle)
+        const pt = Public.getEndPoint(this.centerPoint,this.radius,ang)
+        arcPoints.push(pt)
+      }
+    }
+    if(endPoint) this.didInitEndPoint()
 
-
+    this.setRadius = (radius)=>{
+      if(!radius)return 
+      const centerPoint = Public.getIntersectionPointsFromTwoCircles(this.beginPoint,radius,this.endPoint)[ direction === 'clockwise' ? 0 : 1 ]
+      if(!centerPoint)return
+      const angle = Public.getAngle(centerPoint,this.midPoint )
+      const arcHt = radius - Public.getPerpendicularDistance(centerPoint,this.beginPoint,this.endPoint)
+      const pt2 = Public.getEndPoint(this.midPoint,arcHt,angle)
+      this.centerPoint = centerPoint
+      initArcParameters()
+      this.sendMousePress(this.midPoint)
+      this.sendMouseDrag(pt2)
+      this.sendMouseRelease()
+    }
+    this.setRadius(radius) 
+    
   } //** CLOSE CONSTRUCTOR */
 
   get arcHeight() { 
@@ -355,6 +407,19 @@ export class ArcShapePen extends LineShapePen {
   get arc (){
     if(!this.arcIsEstablished)return null
     return Public.getArc(this.beginPoint, this.endPoint,this.centerPoint, this.direction)
+  }
+  get shapeOutput (){
+    if(!this.arc)return 
+    if(!this.arc.diameter)return 
+    const arc = this.arc
+
+    return [
+      'arc', arc.x, arc.y, arc.diameter, arc.diameter, arc.beginAngle, arc.endAngle
+    ]
+  }
+
+  get radius (){
+    return this.crossAxisRadius
   }
 
 }

@@ -22,11 +22,15 @@ function getReOrderedObject(thisObject, toKeyOrder) {
   return newReOrderedObject
 }
 
+let mousePressFoundSomethingTimeStamp
+
 export class PenConstruct {
-  constructor() {
+  constructor() { 
     this.mouseWasDragged = false;
     this.returnSnap = null
     this.proximityDistance = 5
+
+    this.eventID = null
     const eventFunction = {
       mousePress: (
         mousePressPoint,
@@ -34,9 +38,11 @@ export class PenConstruct {
       ) => {
         this.mousePressSetup(mousePressPoint)
         const needsInitialation = this.userInitializer.evaluateRequirements()
+
         if (needsInitialation) {
           this.lastEventKey = 'userInitializer'
-          this.userInitializer.exicute(mousePressPoint)
+          // const tt = this.userInitializer.execute(mousePressPoint)
+          this.userInitializer.execute(mousePressPoint)
           return
         }
         this.userMousePressInfo = null
@@ -44,12 +50,14 @@ export class PenConstruct {
           specifiedEventKeys = [specifiedEventKeys]
         }
         const mousePressEventStackKeys = Object.keys(this.mousePressEventStack)
-
-        specifiedEventKeys.forEach(specifiedEvent => {
+        let stopEvaluation = false
+        specifiedEventKeys.forEach(specifiedEvent => { 
+          // if(stopEvaluation)return 
+      
           if (mousePressEventStackKeys.includes(specifiedEvent) === false) {
             throw new Error(specifiedEvent + ' is not a valid member of mousePressEventStack')
           } else if (this.userMousePressInfo)return
-          
+
           let findings = this.mousePressEventStack[specifiedEvent].evaluate(
             mousePressPoint
           )
@@ -59,21 +67,25 @@ export class PenConstruct {
             findings = {
               data: findings
             }
+            // mousePressFoundSomethingTimeStamp = Date.now()
+            // console.log(mousePressFoundSomethingTimeStamp)
           }
           findings.eventKey = specifiedEvent
           if (findings.eventKey === '') {
             findings.eventKey = specifiedEvent
             log(specifiedEvent + 'specifiedEvent was empty string \"\": has been set to ' + specifiedEvent)
+            // mousePressFoundSomethingTimeStamp = Date.now()
+            // console.log(mousePressFoundSomethingTimeStamp)
           }
           this.userMousePressInfo = findings
-          for (const key in findings) {
-            log('\t' + key + ': ' + findings[key])
-          }
+          // for (const key in findings) {
+          //   log('\t' + key + ': ' + findings[key])
+          // }
         })
 
         if (this.userMousePressInfo) {
           this.lastEventKey = this.userMousePressInfo.eventKey
-          this.mousePressEventStack[this.userMousePressInfo.eventKey].exicute(this.userMousePressInfo)
+          this.mousePressEventStack[this.userMousePressInfo.eventKey].execute(this.userMousePressInfo)
           return this.userMousePressInfo //true
         }
         return false
@@ -104,37 +116,35 @@ export class PenConstruct {
       eventFunction.mouseRelease = () => {}
     }
 
-    //** EVALUATE BELOW AS TO WHERE IT IS CALLED. DELETE IF NOT USED */
-    this.evaluateMousePoint = (
-      mousePressPoint,
-      specifiedEventKeys = Object.keys(this.mousePressEventStack)
-    ) => {
-      console.log('evaluateMousePoint')
-      if (typeof specifiedEventKeys === 'string') {
-        specifiedEventKeys = [specifiedEventKeys]
-      }
-      const mousePressEventStackKeys = Object.keys(this.mousePressEventStack)
-      let userMousePressInfo = null
-      specifiedEventKeys.forEach(specifiedEvent => {
-        if (mousePressEventStackKeys.includes(specifiedEvent) === false) {
-          throw new Error(specifiedEvent + ' is not a valid member of mousePressEventStack')
-        } else if (userMousePressInfo) {
-          return
-        }
-
-        const findings = this.mousePressEventStack[specifiedEvent].evaluate(
-          mousePressPoint,
-          specifiedEvent
-        )
-        if (findings) {
-          userMousePressInfo = findings
-          for (const key in findings) {
-            log('\t' + key + ': ' + findings[key])
-          }
-        }
-      })
-      return userMousePressInfo
-    }
+    //**TODO EVALUATE BELOW AS TO WHERE IT IS CALLED. DELETE IF NOT USED */
+    // this.evaluateMousePoint = (
+    //   mousePressPoint,
+    //   specifiedEventKeys = Object.keys(this.mousePressEventStack)) => {
+    //   if (typeof specifiedEventKeys === 'string') {
+    //     specifiedEventKeys = [specifiedEventKeys]
+    //   }
+    //   const mousePressEventStackKeys = Object.keys(this.mousePressEventStack)
+    //   let userMousePressInfo = null
+    //   specifiedEventKeys.forEach(specifiedEvent => {
+    //     if (mousePressEventStackKeys.includes(specifiedEvent) === false) {
+    //       throw new Error(specifiedEvent + ' is not a valid member of mousePressEventStack')
+    //     } else if (userMousePressInfo) {
+    //       return
+    //     }
+    //     // console.log(9999)
+    //     const findings = this.mousePressEventStack[specifiedEvent].evaluate(
+    //       mousePressPoint,
+    //       specifiedEvent
+    //     )
+    //     if (findings) {
+    //       userMousePressInfo = findings
+    //       for (const key in findings) {
+    //         log('\t' + key + ': ' + findings[key])
+    //       }
+    //     }
+    //   })
+    //   return userMousePressInfo
+    // }
 
     this.defineEventFunction = function (keyedFunctionPair) { 
       const key = Object.keys(keyedFunctionPair)[0]
@@ -167,9 +177,10 @@ export class PenConstruct {
     }
 
     //**------------------------------------------------------ */
+    //** CREATE A DOUBLE CLICK EVENT STREAM */
     let mouseClickTimeStamp
     this.onMouseDoubleClick = ()=>{}
-    const getDoubleEvent = ()=>{
+    const getDoubleEvent = ()=>{ 
       const lastTimeStamp = mouseClickTimeStamp
       mouseClickTimeStamp = Date.now()
       if(!lastTimeStamp)return
@@ -233,19 +244,19 @@ export class PenConstruct {
     this.userInitializer = {
       /** EXAMPLE
       evaluateRequirements : ()=>{},  //   PURE FUNCTION
-      exicute  : ()=>{},              //   STATE CHANGE FUNCTION
+      execute  : ()=>{},              //   STATE CHANGE FUNCTION
       */
       evaluateRequirements: () => {
         return false
       }, //   PURE FUNCTION
-      exicute: () => {}, //   STATE CHANGE FUNCTION
+      execute: () => {}, //   STATE CHANGE FUNCTION
     }
     //**--------------------BELOW MUST BE DEFINED IN SUBCLASS --------------------*/
     this.mousePressEventStack = {
       /** EXAMPLE
       mouseClickedOnSomething :{        //   EVENT KEY: NAME IT SOMETHING DESCRIBING THE USER MOUSE PRESS
           evaluate : ()=>{},          //   PURE FUNCTION
-          exicute  : ()=>{},          //   STATE CHANGE FUNCTION
+          execute  : ()=>{},          //   STATE CHANGE FUNCTION
       },
       */
     }
@@ -279,3 +290,15 @@ export class PenConstruct {
 
 
 //git remote add origin https://github.com/clauinger/PenConstruct.git
+
+// this.defineEventFunctions({
+//   mouseDragBegin: (mouseDragPoint) => {
+      //* YOUR EVENT CODE
+//   },
+//   mouseDragContinue: (mouseDragPoint) => {
+      //* YOUR EVENT CODE
+//   },
+//   mouseRelease: (mouseReleasePoint) => {
+      //* YOUR EVENT CODE
+//   },
+// })

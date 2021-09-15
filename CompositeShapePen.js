@@ -6,9 +6,13 @@ import { Public } from './Public.js';
 import { State } from './State.js';
 
 import { PenConstruct } from './PenConstruct.js';
-import { Joint } from './PointObservable.js';
+import { Joint } from './ReactiveModules/Joint.js';
 import { startMousePressPointTimer , LinePointSnapTool } from './PenTools.js'
 import { MultiShapePen_01 } from './MultiShapePen_01.js'
+import {
+  DrawMark
+} from './DrawMarks.js';
+
 
 const NULL_OBJECT = {draw:()=>{},drawLoop:()=>{},setGripPoint:()=>{}, isNULL_OBJECT: true}
 const GHOST_COLOR = 'rgba(0,0,0,.1)'
@@ -27,7 +31,9 @@ export class CompositeShapePen extends PenConstruct {
     const makeNewJoint = (point1,point2)=>{
       if(point1.jointReference)return
       if(point2.jointReference)return
-      const newJoint = new Joint(point1,point2)
+      const newJoint = new Joint(point1,point2) 
+
+
       newJoint.context = this.context
       this.jointCollection.add(newJoint)
       return newJoint
@@ -38,9 +44,15 @@ export class CompositeShapePen extends PenConstruct {
 
     this.drawLoop = ()=>{
       ;[...this.shapeCollection].forEach(shape=>shape.drawLoop())
-      ;[...this.jointCollection].forEach(joint=>joint.draw())
+      ;[...this.jointCollection].forEach(joint=>{
+          DrawMark.pointCaptureHalo(this.context, joint, 'rgba(123,123,0,.6)', 20, 1)
+        }
+      )
       this.cursorTimer.drawLoop()
       this.linePointSnapTool.draw()
+      this.unConnectedPoints.forEach(pt=>{
+        DrawMark.pointMark(this.context,pt)
+      })
     }
 
     this.mousePressEventStack = {
@@ -49,7 +61,7 @@ export class CompositeShapePen extends PenConstruct {
           const joint  = Public.getUserMouseClickOnPoint(mousePressPoint,this.proximityDistance + 4,[...this.jointCollection])
           if(joint) return {mousePressPoint,joint}
         },
-        exicute:(info)=>{
+        execute:(info)=>{
           this.defineEventFunctions({
             mouseDragContinue:(mouseDragPoint) =>{
               State.movePoints(info.mousePressPoint,mouseDragPoint,[info.joint])
@@ -58,12 +70,12 @@ export class CompositeShapePen extends PenConstruct {
         }
       },
 
-      mousePressOnEndPoint : {
+      mousePressOnEndPoint : { //TODO RENAME TO mousePressOnConnectPoint
         evaluate:(mousePressPoint)=>{
           const point  = Public.getUserMouseClickOnPoint(mousePressPoint,this.proximityDistance,this.endPoints)
           if(point) return {mousePressPoint,contactPoint : point}
         },
-        exicute:(info)=>{ //DRAG TO MAKE NEW LINE-SHAPE OR SWITCH TO SELECT POINT TO MOVE ON DRAG
+        execute:(info)=>{ //DRAG TO MAKE NEW LINE-SHAPE OR SWITCH TO SELECT POINT TO MOVE ON DRAG
           let newShape,newJoint
           const {mousePressPoint,contactPoint} = info
           let unConnectedPoints
@@ -74,7 +86,7 @@ export class CompositeShapePen extends PenConstruct {
             targetPoint : contactPoint,
             
             runFunction : ()=>{
-              contactPoint.lineReference.setSelectPoint(contactPoint)
+              contactPoint.referenceLine.setSelectPoint(contactPoint)
               //* DELETE SHAPE AND NODE JUST CREATED
               this.shapeCollection.delete(newShape)
               this.jointCollection.delete(newJoint)
@@ -163,8 +175,8 @@ export class CompositeShapePen extends PenConstruct {
           if(info.eventKey !== 'mouseClickOnLine')return
           return {mousePressPoint,shape: shapeHit}
         },
-        exicute:(info)=>{
-          log('mousePressOnShapeLine')
+        execute:(info)=>{
+
           const {mousePressPoint,shape} = info
           const lineIsAlreadySelected = shape.lineIsSelected
           shape.beginPointIsSelected = true
@@ -193,7 +205,7 @@ export class CompositeShapePen extends PenConstruct {
         }
       },
 
-      mousePressOnShape : {
+      mousePressOnShape : { 
         evaluate:(mousePressPoint)=>{
           let shapeHit , info
           ;[...this.shapeCollection].forEach(shape=>{
@@ -206,7 +218,7 @@ export class CompositeShapePen extends PenConstruct {
           if(!shapeHit) return 
           return {mousePressPoint,shape: shapeHit}
         },
-        exicute:(info)=>{
+        execute:(info)=>{
           this.defineEventFunctions({
             mouseDragContinue:(mouseDragPoint) =>{
               info.shape.sendMouseDrag(mouseDragPoint)
@@ -223,7 +235,7 @@ export class CompositeShapePen extends PenConstruct {
         evaluate:(mousePressPoint)=>{
           return {mousePressPoint}
         },
-        exicute:(info)=>{
+        execute:(info)=>{
           let newShape
           this.defineEventFunctions({
             mouseDragBegin:(mouseDragPoint) =>{
@@ -242,7 +254,6 @@ export class CompositeShapePen extends PenConstruct {
               if(newShape.lineLength <= 5){
                 this.shapeCollection.delete(newShape)
               }
-          
             }
           })
         }

@@ -14,7 +14,7 @@ import { Public } from './Public.js';
 import { State } from './State.js';
 import { grip} from './PenTools.js';
 import { PenConstruct } from './PenConstruct.js';
-import { Node , Joint } from './PointObservable.js';
+import { Node , Joint } from './ReactiveModules/PointObservable.js';
 import { BezierShapePen } from './BezierShapePen.js';
 import { ArcShapePen } from './ArcShapePen.js';
 import {UniversalShapePen} from './UniversalShapePen.js'
@@ -56,7 +56,7 @@ mouseClickedOn_____ : {
     const node = Public.getUserMouseClickOnPoint(mousePressPoint,this.proximityDistance,jointCollection)
     if(node)return {mousePressPoint, node}
   },
-  exicute:(info)=>{ 
+  execute:(info)=>{ 
 
     this.defineEventFunction({
       mouseDragContinue: (mouseDragPoint) => {
@@ -79,7 +79,7 @@ mouseClickedOn_____ : {
           const contactPoint = Public.getUserMouseClickOnPoint(mousePressPoint,this.proximityDistance,points)
           if(contactPoint) return {mousePressPoint ,contactPoint, node : contactPoint.nodeReference}
         },
-        exicute:(info)=>{ log(info)
+        execute:(info)=>{ log(info)
           const {contactPoint, mousePressPoint} = info
           this.cursorTimer =  startMousePressPointTimer({
             context : this.context,
@@ -153,7 +153,7 @@ newJoint.addPoint(newShape.beginNode)
           const node = Public.getUserMouseClickOnPoint(mousePressPoint,this.proximityDistance,jointCollection)
           if(node)return {mousePressPoint, node}
         },
-        exicute:(info)=>{ 
+        execute:(info)=>{ 
           this.defineEventFunction({
             mouseDragContinue: (mouseDragPoint) => {
               State.movePoints(info.mousePressPoint, mouseDragPoint,[info.node])
@@ -176,7 +176,7 @@ newJoint.addPoint(newShape.beginNode)
           })
           return result
         },
-        exicute:(result)=>{ 
+        execute:(result)=>{ 
           this.defineEventFunction({
             mouseDragContinue: (mouseDragPoint) => {
               result.sendMouseDrag(mouseDragPoint)
@@ -193,7 +193,7 @@ newJoint.addPoint(newShape.beginNode)
         evaluate:(mousePressPoint)=>{
           return {mousePressPoint}
         },
-        exicute:(result)=>{ 
+        execute:(result)=>{ 
 
           let dragPoint
           let newShape

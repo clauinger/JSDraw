@@ -24,11 +24,12 @@ export const Public = {
     return null
   },
 
-  getDistanceTwoPoints: (point1,point2) => { //formerly distanceTwoPoints
+  getDistanceTwoPoints: (point1, point2) => { //formerly distanceTwoPoints
     const x1 = point1.x
     const y1 = point1.y
     const x2 = point2.x
     const y2 = point2.y
+
     function diff(num1, num2) {
       if (num1 > num2) return (num1 - num2)
       else return (num2 - num1)
@@ -38,6 +39,12 @@ export const Public = {
     let deltaY = diff(y1, y2);
     let dist = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
     return (dist);
+  },// {x:0,y:12},{x:10,y:112}
+
+  getDeltaTwoPoints : (point1, point2) => {
+    const x = point2.x - point1.x
+    const y = point2.y - point1.y
+    return {x,y}
   },
 
   getUserMouseClickOnLine: (mousePressPoint, distanceFactor, lineCollection) => {
@@ -62,6 +69,8 @@ export const Public = {
   },
 
   getPerpendicularDistance: (point, beginPoint, endPoint) => { //formerly pDistance
+    // if(!endPoint && beginPoint.endPoint)endPoint = beginPoint.endPoint
+    // if(!beginPoint.x && beginPoint.beginPoint)beginPoint = beginPoint.beginPoint
     const {
       x,
       y
@@ -106,13 +115,16 @@ export const Public = {
     })
   },
 
-  filterNodelessMainPoints : (lineShapeCollection)=>{
-    return Public.filterMainPointsFromLineShapeCollection(lineShapeCollection).filter(pt=>pt.nodeReference ? false : true)
+  filterNodelessMainPoints: (lineShapeCollection) => {
+    return Public.filterMainPointsFromLineShapeCollection(lineShapeCollection).filter(pt => pt.nodeReference ? false : true)
   },
 
-  filterMainPointsFromLineShapeCollection : (lineShapeCollection)=>{
+  filterMainPointsFromLineShapeCollection: (lineShapeCollection) => {
     let arr = []
-    lineShapeCollection.forEach(ln =>{ arr.push(ln.beginPoint); arr.push(ln.endPoint)})
+    lineShapeCollection.forEach(ln => {
+      arr.push(ln.beginPoint);
+      arr.push(ln.endPoint)
+    })
     return arr
   },
 
@@ -137,6 +149,7 @@ export const Public = {
 
   getLineRadianAngle: (line) => Math.atan2(line.endPoint.y - line.beginPoint.y, line.endPoint.x - line.beginPoint.x),
 
+  //TODO REARANGE THE ARGUMENT ORDER FOR POINT FIRST
   getPerpendicularPoint: (line, point) => {
     const A = line.beginPoint
     const B = line.endPoint
@@ -355,8 +368,8 @@ export const Public = {
   /**RETURN RADIUS LINE INFO OR NULL**/
 
   makeLineFromArcParameter: (arcParameter) => {
-    const beginAngle = Public.radians_to_degrees(arcParameter.beginAngle)
-    const endAngle = Public.radians_to_degrees(arcParameter.endAngle)
+    const beginAngle = Public.radiansToDegrees(arcParameter.beginAngle)
+    const endAngle = Public.radiansToDegrees(arcParameter.endAngle)
     const centerPoint = {
       x: arcParameter.x,
       y: arcParameter.y,
@@ -367,7 +380,7 @@ export const Public = {
     }
   },
 
-  radians_to_degrees: (radians) => {
+  radiansToDegrees: (radians) => {
     var pi = Math.PI;
     return radians * (180 / pi);
   },
@@ -430,29 +443,172 @@ export const Public = {
   },
 
   getArc: (point1, point2, centerPoint, direction = 'clockwise') => {
-    if(!centerPoint) return
+    if (!centerPoint) return
 
 
 
-    const diameter = Public.getLineLength({beginPoint :centerPoint, endPoint: {x:point1.x , y:point1.y}}) * 2
+    const diameter = Public.getLineLength({
+      beginPoint: centerPoint,
+      endPoint: {
+        x: point1.x,
+        y: point1.y
+      }
+    }) * 2
     const beginAngle = Public.getLineRadianAngle({
       beginPoint: centerPoint,
-      endPoint: {x:point1.x , y:point1.y}
+      endPoint: {
+        x: point1.x,
+        y: point1.y
+      }
     })
     const endAngle = Public.getLineRadianAngle({
       beginPoint: centerPoint,
-      endPoint: {x:point2.x , y:point2.y}//point2
+      endPoint: {
+        x: point2.x,
+        y: point2.y
+      } //point2
     })
 
     return {
-      //this.context.arc(x, y, diameter, diameter, beginAngle, endAngle)
+      //context.arc(x, y, diameter, diameter, beginAngle, endAngle)
       x: centerPoint.x,
       y: centerPoint.y,
       diameter,
       diameter,
       beginAngle: direction === 'clockwise' ? beginAngle : endAngle,
-      endAngle: direction === 'clockwise' ?  endAngle : beginAngle,
+      endAngle: direction === 'clockwise' ? endAngle : beginAngle,
     }
-  }
+  },
+
+  getLineIntersection: (line1, line2) => {
+    const line1BeginX = line1.beginPoint.x
+    const line1BeginY = line1.beginPoint.y
+    const line1EndX = line1.endPoint.x
+    const line1EndY = line1.endPoint.y
+    const line2BeginX = line2.beginPoint.x
+    const line2BeginY = line2.beginPoint.y
+    const line2EndX = line2.endPoint.x
+    const line2EndY = line2.endPoint.y
+
+    let denominator, a, b, numerator1, numerator2
+    let result = {
+      x: null,
+      y: null,
+      // onLine1: false,
+      // onLine2: false
+    };
+    denominator = ((line2EndY - line2BeginY) * (line1EndX - line1BeginX)) - ((line2EndX - line2BeginX) * (line1EndY - line1BeginY));
+    if (denominator === 0) return null;
+
+    a = line1BeginY - line2BeginY;
+    b = line1BeginX - line2BeginX;
+    numerator1 = ((line2EndX - line2BeginX) * a) - ((line2EndY - line2BeginY) * b);
+    numerator2 = ((line1EndX - line1BeginX) * a) - ((line1EndY - line1BeginY) * b);
+    a = numerator1 / denominator;
+    b = numerator2 / denominator;
+    result.x = line1BeginX + (a * (line1EndX - line1BeginX));
+    result.y = line1BeginY + (a * (line1EndY - line1BeginY));
+
+    // if (a > 0 && a < 1) {
+    //     result.onLine1 = true;
+    // }
+    // if (b > 0 && b < 1) {
+    //     result.onLine2 = true;
+    // }
+    return result;
+  },
+
+  getPointIsInsideBox: (point, box) => {
+    return !(point.x < box.left || point.x > box.right || point.y > box.bottom || point.y < box.top)
+  },
+
+  generateArcPoints: (beginPoint, endPoint, centerPoint, direction = 'clockwise', arcLengthTarget = 10) => {
+    const radius = Public.getDistanceTwoPoints(beginPoint, centerPoint)
+    if (!isFinite(radius)) return []
+
+
+    const isClockwise = direction === 'clockwise'
+    const beginAngle = Public.getAngle(centerPoint, beginPoint)
+    let endAngle = Public.getAngle(centerPoint, endPoint)
+    if (endAngle < beginAngle && isClockwise) endAngle += 360
+    if (endAngle > beginAngle && isClockwise === false) endAngle -= 360
+    const centerAngle = isClockwise ? endAngle - beginAngle : beginAngle - endAngle
+
+    const angleLength = Math.abs(centerAngle) * (Math.PI / 180) * radius
+    const div = Math.abs(Math.round(angleLength / arcLengthTarget))
+    let segmentAngle = centerAngle / div
+    if (!isClockwise) segmentAngle *= -1
+    const arcPoints = []
+    for (let index = 0; index < div; index++) {
+      const ang = beginAngle + (index * segmentAngle)
+      const pt = Public.getEndPoint(centerPoint, radius, ang)
+      arcPoints.push(pt)
+    }
+    return arcPoints
+  },
+  getIntersectionPointsFromTwoCircles: (centerPoint1 /* BEGIN POINT */, radius1, centerPoint2 /* END POINT */, radius2) => {
+    //** CHECK IF CIRCLES DO NOT INTERSECT */
+    const dd = Public.getDistanceTwoPoints(centerPoint1, centerPoint2)
+    if(dd > radius1 && dd > radius2 ) return null
+
+    const x0 = centerPoint1.x, y0 = centerPoint1.y
+    const x1 = centerPoint2.x, y1 = centerPoint2.y
+    if(!radius2) radius2 = radius1
+
+    let a, dx, dy, d, h, rx, ry;
+    let x2, y2;
+
+    dx = x1 - x0;
+    dy = y1 - y0;
+
+    d = Math.sqrt((dy * dy) + (dx * dx));
+
+    if (d > (radius1 + radius2)) {
+      return false;
+    }
+    if (d < Math.abs(radius1 - radius2)) {
+      return false;
+    }
+    a = ((radius1 * radius1) - (radius2 * radius2) + (d * d)) / (2.0 * d);
+    x2 = x0 + (dx * a / d);
+    y2 = y0 + (dy * a / d);
+    h = Math.sqrt((radius1 * radius1) - (a * a));
+    rx = -dy * (h / d);
+    ry = dx * (h / d);
+    let xi = x2 + rx;
+    let xi_prime = x2 - rx;
+    let yi = y2 + ry;
+    let yi_prime = y2 - ry;
+    return [  {x:xi_prime, y: yi_prime} /* CLOCKWISE CP */ , {x:xi, y: yi} /* COUNTER CLOCKWISE CP */];
+  },
+
+  getMovedPoints : (startPoint, moveToPoint, pointCollection)=>{
+    const firstX = startPoint.x
+    const firstY = startPoint.y
+    let nX = 0;
+    let nY = 0;
+    const selectedPointCollection = [startPoint].concat(pointCollection)
+    return selectedPointCollection.map(pt=>{
+      nX = pt.x - firstX;
+      nY = pt.y - firstY;
+      return { x :moveToPoint.x + nX , y : moveToPoint.y + nY}
+    })
+  },
+  getWhichSidePointToLine : (point, lineReference, print) =>{ 
+    const lineBeginPoint = lineReference.beginPoint.xy || lineReference.beginPoint
+    const lineEndPoint = lineReference.endPoint.xy || lineReference.endPoint
+    const lineAngle = Public.getAngle(lineBeginPoint,lineEndPoint )
+    const perpendicularPoint = Public.getPerpendicularPoint(lineReference, point)
+    const angle = Math.round( Public.getAngle(point, perpendicularPoint) )
+    let deltaAngle = angle -  Math.round( lineAngle )
+    deltaAngle = deltaAngle < 0 ? 360 + deltaAngle : deltaAngle
+    return deltaAngle === 270 ?  'right' : 'left'
+  },
+
+  generateUUID : ()=>{
+    return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+      (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+    )
+  },
 
 }

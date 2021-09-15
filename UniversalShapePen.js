@@ -1,3 +1,5 @@
+//TODO FILE AND OBJECT TO BE DISCONTINUED AND REMOVED FROM PROJECT
+
 /*jshint esversion: 6 */
 /*jshint asi: true */
 /*jshint expr: true */
@@ -7,11 +9,10 @@ import {
 } from './LineShapePen.js'
 
 import { Public } from './Public.js';
-import { State } from './State.js';
 import { grip} from './PenTools.js';
 import { ArcShapePen} from './ArcShapePen.js'
 import { BezierShapePen} from './BezierShapePen.js'
-import { Node } from './PointObservable.js';
+import { NodeConnection } from './ReactiveModules/NodeConnection.js';
 
 const {log} = console
 const NULL_OBJECT = {
@@ -33,8 +34,8 @@ export class UniversalShapePen extends LineShapePen {
   ) {
     super(context, beginPoint, endPoint)
 
-    this.beginNode = new Node()
-    this.endNode = new Node()
+    this.beginNode = new NodeConnection()
+    this.endNode = new NodeConnection()
 
     const beginBezierGrip = grip(this.context,()=>{
       return Public.getEndPoint(this.beginPoint,20,this.angle)
@@ -126,7 +127,7 @@ this.endNode.addPoint(this.endPoint)
         if(_beginBezierGrip.verifyMousePress(mousePressPoint))return {mousePressPoint, beginBezierGrip: _beginBezierGrip}
         if(_endBezierGrip.verifyMousePress(mousePressPoint))return {mousePressPoint, endBezierGrip: _endBezierGrip}
       },
-      exicute: (info) => {  log(info.eventKey)
+      execute: (info) => {  log(info.eventKey)
         this.defineEventFunctions({
           mouseDragBegin: (mouseDragPoint) => { 
             //** MAKE BEZIER SHAPE */
@@ -171,7 +172,7 @@ this.endNode.addPoint(this.bezier.endPoint)
         //mouseClickedOnLine
         if(info)return info
       },
-      exicute: (info) => {log(info.eventKey)
+      execute: (info) => {log(info.eventKey)
 
         this.defineEventFunctions({
           mouseDragBegin: (mouseDragPoint) => {      
@@ -198,7 +199,7 @@ this.endNode.addPoint(this.bezier.endPoint)
         if(bezierShape.isNULL_OBJECT) return
         if(_centerGrip.verifyMousePress(mousePressPoint))return {mousePressPoint, centerGrip:_centerGrip}
       },
-      exicute: (info) => {log(info.eventKey)
+      execute: (info) => {log(info.eventKey)
         // this.bezier = NULL_OBJECT
 this.currentShape = this
         beginBezierGrip.hidden = false
@@ -250,7 +251,7 @@ centerGrip.hidden = true
         if(!arcShape.isNULL_OBJECT) return
         if(_centerGrip.verifyMousePress(mousePressPoint))return {mousePressPoint, centerGrip:_centerGrip}
       },
-      exicute: (info) => { log(info.eventKey)
+      execute: (info) => { log(info.eventKey)
         this.defineEventFunctions({
           mouseDragBegin: (mouseDragPoint) => { 
             // ** MAKE ARC
@@ -298,7 +299,7 @@ centerGrip.hidden = true
         if(info.eventKey === 'mouseClickedOnPoint') return
         if(info)return info
       },
-      exicute: (info) => {log(info.eventKey)
+      execute: (info) => {log(info.eventKey)
 
         this.defineEventFunctions({
           mouseDragBegin: (mouseDragPoint) => {      
@@ -334,7 +335,7 @@ centerGrip.hidden = true
         // if(info.eventKey === 'mouseClickedOnPoint') return
         // if(info)return info
       },
-      exicute: (info) => { log(info.eventKey)
+      execute: (info) => { log(info.eventKey)
         //TODO REVIEW AND MODIFY FOR OPTIMAL MEMORY MANAGEMENT
         //** DELETE ARC */
         // this.arc = NULL_OBJECT

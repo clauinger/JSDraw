@@ -17,6 +17,9 @@ import {
 import {
   modifyMousePointIfSnapIsEngaged , setSnapPointEngaged
 } from './PenTools.js'
+import {
+  DrawMark
+} from './DrawMarks.js';
 
 
 export class ArcLineShapePen extends LineShapePen {
@@ -36,8 +39,8 @@ export class ArcLineShapePen extends LineShapePen {
       this.drawLinePen()
       if(!this.circlePen.context && this.context) this.circlePen.context = this.context
       if (this.centerPoint) {
-        State.drawPointCaptureHalo(this.context, this.centerPoint, 'rgba(70%, 70%, 70%, 0.5)', 5, 1)
-        State.drawPointCaptureHalo(this.context, this.arcMidPoint, 'rgba(70%, 70%, 70%, 0.5)', 5, 2)
+        DrawMark.pointCaptureHalo(this.context, this.centerPoint, 'rgba(70%, 70%, 70%, 0.5)', 5, 1)
+        DrawMark.pointCaptureHalo(this.context, this.arcMidPoint, 'rgba(70%, 70%, 70%, 0.5)', 5, 2)
         this.circlePen.drawLoop()
       }
     }
@@ -197,7 +200,7 @@ export class ArcLineShapePen extends LineShapePen {
         })()
         return findings
       },
-      exicute: (userMousePressInfo = this.userMousePressInfo) => {
+      execute: (userMousePressInfo = this.userMousePressInfo) => {
         logMessage('case 1: user to initialize arc')
         const mousePressPoint = userMousePressInfo.modifiedPressPoint
         this.circlePen.sendMousePress(mousePressPoint)
@@ -242,7 +245,7 @@ export class ArcLineShapePen extends LineShapePen {
 
         return findings
       },
-      exicute: () => {
+      execute: () => {
         logMessage('case 3: move arc center point')
         const centerPoint = this.centerPoint
         const lineAngle = Public.getLineAngle(this.line)
@@ -327,7 +330,7 @@ export class ArcLineShapePen extends LineShapePen {
         })()
         return findings
       },
-      exicute: () => {
+      execute: () => {
         logMessage('case 4: move arc center point')
         this.circlePen.returnSnap = {
           point: {
@@ -387,7 +390,7 @@ export class ArcLineShapePen extends LineShapePen {
         })()
         return findings
       },
-      exicute: () => {
+      execute: () => {
         logMessage('case 5: initiate swipe arc point change')
 
         this.circlePen.returnSnap = null
@@ -470,9 +473,9 @@ export class ArcLineShapePen extends LineShapePen {
         /**------------------RETURN FINDINGS**/
         return findings
       },
-      exicute: (userMousePressInfo = this.userMousePressInfo) => {
+      execute: (userMousePressInfo = this.userMousePressInfo) => {
         logMessage('case 6: begin rotate of arc')
-        // this.circlePen.mousePressEventStack.mouseClickedOnRadiusLine.exicute(userMousePressInfo)
+        // this.circlePen.mousePressEventStack.mouseClickedOnRadiusLine.execute(userMousePressInfo)
         this.circlePen.sendMousePress(userMousePressInfo.modifiedPressPoint)
         this.defineEventFunction({
           // mouseDragContinue: (mouseDragPoint = {

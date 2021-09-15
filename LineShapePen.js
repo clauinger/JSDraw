@@ -8,16 +8,18 @@ import {
 import {
   State
 } from './State.js'
+import {
+  DrawMark
+} from './DrawMarks.js';
+
 
 import {
   PenConstruct
 } from './PenConstruct.js'
 import {
   PointObservable
-} from './PointObservable.js'
-import {
-  CursorLineSwiper
-} from './PenTools.js'
+} from './ReactiveModules/PointObservable.js'
+
 
 const {
   log
@@ -28,24 +30,27 @@ export class LineShapePen extends PenConstruct {
     context,
     beginPoint = null,
     endPoint = null,
+    inputs = {}
   ) {
 
     super()
     this.context = context
+
+
+    //TODO NEED TO FIND WAY TO ACTIVATE AN INIT WHEN A PLACEHOLDER BEGIN POINT AND END POINT HAVE THIER VALUES SET
     if (beginPoint) {
       this.beginPoint = new PointObservable(beginPoint,this)
-
     } else {
       this.beginPoint = null
     }
     if (endPoint) {
-
       this.endPoint = new PointObservable(endPoint,this)
-
     } else {
       this.endPoint = null
     }
-    this.init = ()=>{ log('line init')
+
+    //TODO DONT THINK BELOW IS BEING CALLED; SHALL CHECK
+    this.init = ()=>{
       if(this.beginPoint)this.didInitBeginPoint()
       if(this.endPoint)this.didInitEndPoint()
       this.beginPoint.appendDidSet(this.didSetBeginPoint)
@@ -58,7 +63,6 @@ export class LineShapePen extends PenConstruct {
     }
 
     let beginPointOrbitAnchoredPointsTool, endPointOrbitAnchoredPointsTool
-
     this.didSetBeginPoint = () => {}
     this.didSetEndPoint = () => {}
     this.didInitBeginPoint = () => {}
@@ -116,7 +120,7 @@ export class LineShapePen extends PenConstruct {
         .circle(this.endPoint.x, this.endPoint.y, this.pointRadius)
 
       if (this.beginPointIsSelected) {
-        State.drawPointCaptureHalo(
+        DrawMark.pointCaptureHalo(
           this.context,
           /*  atPoint         */
           this.beginPoint,
@@ -129,7 +133,7 @@ export class LineShapePen extends PenConstruct {
         )
       }
       if (this.endPointIsSelected) {
-        State.drawPointCaptureHalo(
+        DrawMark.pointCaptureHalo(
           this.context,
           /*  atPoint         */
           this.endPoint,
@@ -160,37 +164,33 @@ export class LineShapePen extends PenConstruct {
     this.userInitializer = {
       evaluateRequirements: (hasLineDrawn = this.hasLineDrawn) => hasLineDrawn === false, //   PURE FUNCTION
 
-      exicute: (mousePressPoint) => {
+      execute: (mousePressPoint) => { 
         // console.log('init case: user to initialize single line')
         this.beginPoint = new PointObservable({
           x: mousePressPoint.x,
           y: mousePressPoint.y
         },this)
-
+ 
         this.beginPoint.didSet = this.didSetBeginPoint
         this.didInitBeginPoint()
-        this.defineEventFunction({
+        
+        this.defineEventFunctions({ 
           mouseDragBegin: (mouseDragPoint) => {
             this.endPoint = new PointObservable({
               x: mouseDragPoint.x,
               y: mouseDragPoint.y
             },this)
             this.endPoint.didSet = this.didSetEndPoint
-            
-          }
-        })
-        this.defineEventFunction({
+          },
           mouseDragContinue: (mouseDragPoint) => {
             this.endPoint.xy = mouseDragPoint
             this.initialDragAppendFunction()
-          }
-        })
-        this.defineEventFunction({
+            
+          },
           mouseRelease: () => { 
             this.lineIsSelected = false
             this.didInitEndPoint()
             loadPointObservers()
-       
           }
         })
       }
@@ -254,9 +254,8 @@ export class LineShapePen extends PenConstruct {
           })()
           return findings
         },
-        exicute: (mousePressInfo) => {
+        execute: (mousePressInfo) => {
           logMessage('case 1: user to drag point')
-
           const mousePressPoint = mousePressInfo.modifiedPressPoint
           this.beginPointIsSelected = mousePressInfo.point === this.beginPoint
           this.endPointIsSelected = mousePressInfo.point === this.endPoint
@@ -301,7 +300,7 @@ export class LineShapePen extends PenConstruct {
           })()
           return findings
         },
-        exicute: (mousePressInfo) => { 
+        execute: (mousePressInfo) => { 
           const {mousePressPoint} = mousePressInfo
           const lineWasAlreadySelected = this.beginPointIsSelected && this.endPointIsSelected
           this.beginPointIsSelected = true
@@ -331,9 +330,6 @@ export class LineShapePen extends PenConstruct {
         console.log(logString)
       }
     }
-
-
-
   } /** CLOSE CONSTRUCTOR */
 
   get selectedPoints (){
@@ -349,6 +345,7 @@ export class LineShapePen extends PenConstruct {
   }
 
   get hasLineDrawn() {
+    // if(this.endPoint.isNotInitialized) return null
     return this.endPoint !== null
   }
 
@@ -402,7 +399,12 @@ export class LineShapePen extends PenConstruct {
     this.beginPoint = new PointObservable(line.beginPoint)
     this.endPoint = new PointObservable(line.endPoint)
   }
-
+  get shapeOutput (){
+    return [
+      'line',
+      this.beginPoint.x, this.beginPoint.y, this.endPoint.x, this.endPoint.y
+    ]
+  }
 
   toJSON() {
 
