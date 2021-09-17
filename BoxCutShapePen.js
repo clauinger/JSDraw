@@ -32,9 +32,13 @@ import {
 } from './PenTools.js'
 
 
-const {
-  log
-} = console
+// const {
+//   log
+// } = console
+
+const log = () => {}
+
+
 const NULL_OBJECT = {
   draw: () => {},
   drawLoop: () => {},
@@ -79,16 +83,29 @@ export class BoxCutShapePen extends PenConstruct {
       lineReference.endPoint.appendDidSet(()=>{conformToLineReference()})
     }
     let tempLine
-    const conformToLineReference = (line = lineReference)=>{ 
+    const conformToLineReference = (line = lineReference)=>{ log('conformToLineReference')
+    // log(this.beginPoint.xy)
+      //* IF THERE IS NO LINE REFERENCE OBJECT, WE DEFAULT TO USE OF 
+      // * CURRENT POINTS AND FORCE THEM TO BOX PARIMETER
+      if(!line && this.beginPoint && this.endPoint) line = {beginPoint: this.beginPoint.xy , endPoint: this.endPoint.xy }
       tempLine = line
+log(tempLine)
+if(lineReference) log(Public.getLineLength(tempLine))
+//* BUG
       tempLine = getPoints()
+log(tempLine)
       if(!tempLine) return
+// log(tempLine.beginPoint)
+
       const needsToBeFlipped = Math.abs( Public.getLineAngle(line) - Public.getLineAngle(tempLine) ) > 1
       if(needsToBeFlipped){
         tempLine = {beginPoint: tempLine.endPoint , endPoint: tempLine.beginPoint }
       }
       this.beginPoint.xy = tempLine.beginPoint
       this.endPoint.xy = tempLine.endPoint
+
+      // log(this.beginPoint.xy)
+
       this.beginPoint.lineKey = tempLine.beginPoint.lineKey
       this.endPoint.lineKey = tempLine.endPoint.lineKey
     }
@@ -98,11 +115,10 @@ export class BoxCutShapePen extends PenConstruct {
     this.endPointIsSelected = false
 
     this.didInitEndPoint = () => {}
-
     this.getboxContainer = () => {
       if (boxContainer) return boxContainer
       if (!box) { //** CREATE DEFAULT BOX*/
-        const offset = 100
+        const offset = 40
         box = {
           x: offset,
           y: offset,
@@ -298,32 +314,12 @@ export class BoxCutShapePen extends PenConstruct {
         this.context.line(this.beginPoint.x, this.beginPoint.y, this.endPoint.x, this.endPoint.y);
         this.context.stroke(this.lineColor)
       } 
-
-      // if(this.testLine)this.testLine.drawLoop()
-      // if(this.testCircles){
-      //   this.context.noFill()
-      //   this.context.circle(this.testCircles[0].x, this.testCircles[0].y , 400 )
-      //   this.context.circle(this.testCircles[1].x, this.testCircles[1].y , 400 )
-      // }
-      // if(this.testArc){ 
-      //   this.testArc.drawLoop()
-      // }
-      // if(this.testBezier){ 
-      //   this.testBezier.drawLoop()
-      // }
-
-      // if(lineReference){
-      //   this.context.line(lineReference.beginPoint.x, lineReference.beginPoint.y , lineReference.endPoint.x, lineReference.endPoint.y)
-      // }
-
-      
     }
 
     const refreshArcPoints = () => {
       if (!this.shapePen.direction) return
-      return arcPoints = Public.generateArcPoints(this.beginPoint, this.endPoint, this.shapePen.centerPoint, this.shapePen.direction)
+      arcPoints = Public.generateArcPoints(this.beginPoint, this.endPoint, this.shapePen.centerPoint, this.shapePen.direction)
     }
-    // let tempLine
 
     // ** INIT FUNCTION
     let isInitailized = false
@@ -331,9 +327,7 @@ export class BoxCutShapePen extends PenConstruct {
     this.init = () => { 
       if (!this.context) return
       if (isInitailized) return
-
       isInitailized = true
-      // this.boxContainer = this.getboxContainer()
       const beginPointXY = {
         x: this.boxContainer.leftLine.beginPoint.x,
         y: this.boxContainer.centerPoint.y
@@ -370,10 +364,11 @@ export class BoxCutShapePen extends PenConstruct {
       )
       this.rotateGrip.setGripPoint()
 
-      this.didInitEndPoint()
       if(isLineReferenced){
         conformToLineReference()
       }
+
+      this.didInitEndPoint()
     }
 
     this.reset = () => {
@@ -386,6 +381,7 @@ export class BoxCutShapePen extends PenConstruct {
       lineKeys.forEach(lineKey => {
         const boxLine = this.getboxContainer()[lineKey]
         const intersectionPoint = Public.getLineIntersection(boxLine, tempLine)
+        log(intersectionPoint)
         if(!intersectionPoint)return
         intersectionPoint.lineKey = lineKey
         if (Public.getPointIsInsideBox(intersectionPoint, this.boxContainer.side)) points.push(intersectionPoint)
@@ -399,7 +395,7 @@ export class BoxCutShapePen extends PenConstruct {
 
     this.mousePressEventStack = {
       mousePressOnRotateGrip: {
-        evaluate: (mousePressPoint, grip = this.rotateGrip , isLineReferenced) => {
+        evaluate: (mousePressPoint, isLineReferenced, grip = this.rotateGrip ) => {
           if(isLineReferenced)return
           const result = grip.verifyMousePress(mousePressPoint)
           if (!result) return

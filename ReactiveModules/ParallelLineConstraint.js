@@ -2,7 +2,9 @@
 //** THIS IS A REACTIVE LINE ANGLE PARAMETRIC                                                   */
 //** THIS IS TO ENFORCE THAT WHEN ONE POINT IS MOVED, THE OTHER IS CORRECTED TO SPECIFIED ANGLE *//
 //**------------------------------------------------------------------------------------------   */
-
+/*jshint esversion: 6 */
+/*jshint asi: true */
+/* jshint expr: true */
 import {
   PointObservable
 } from './PointObservable.js'
@@ -11,9 +13,7 @@ import {
   Public
 } from '../Public.js'
 
-/*jshint esversion: 6 */
-/*jshint asi: true */
-/* jshint expr: true */
+
 
 const {
   log
@@ -23,7 +23,7 @@ export class ParallelLineConstraint {
   constructor(
     beginPoint,
     endPoint,
-    referenceLine, //** SETS ANGLE*/
+    referenceLine //** SETS ANGLE*/
   ) {
     this.beginPoint = Public.whatThisIs(beginPoint) === 'PointObservable' ? beginPoint : new PointObservable(beginPoint)
     this.endPoint = Public.whatThisIs(endPoint) === 'PointObservable' ? endPoint : new PointObservable(endPoint)
@@ -31,7 +31,7 @@ export class ParallelLineConstraint {
     const generateReferencePointReactionFunction = () => {
       return {
         //** IF ONE POINT IS MOVED, THE OTHER IS CORRECTED FOR ANGLE CONFORMITY, PRESERVING LINE LENGTH/DISTANCE */
-        function: () => {
+        function: () => { 
           if (!this.referenceLine) return
           if (Math.round(this.referenceLineAngle * 100) === Math.round(this.angle * 100)) return
           this.endPoint.xy = Public.getEndPoint(this.beginPoint, this.referenceLineLength, this.referenceLineAngle)
@@ -39,15 +39,15 @@ export class ParallelLineConstraint {
       }
     }
 
-    const referencePointReactionFunction = generateReferencePointReactionFunction().function
-    this.referenceLine.beginPoint.appendDidSet(referencePointReactionFunction)
-    this.referenceLine.endPoint.appendDidSet(referencePointReactionFunction)
-    this.beginPoint.didSet = referencePointReactionFunction
-    this.beginPoint.appendDidSet(referencePointReactionFunction)
+    const refreshLinePoints = generateReferencePointReactionFunction().function
+    this.referenceLine.beginPoint.appendDidSet(refreshLinePoints)
+    this.referenceLine.endPoint.appendDidSet(refreshLinePoints)
+    this.beginPoint.didSet = refreshLinePoints
+    this.beginPoint.appendDidSet(refreshLinePoints)
 
     this.disassociateWithLine = () => {
-      this.referenceLine.endPoint.removeDidSetFunction(referencePointReactionFunction)
-      this.referenceLine.beginPoint.removeDidSetFunction(referencePointReactionFunction)
+      this.referenceLine.endPoint.removeDidSetFunction(refreshLinePoints)
+      this.referenceLine.beginPoint.removeDidSetFunction(refreshLinePoints)
       this.referenceLine = null
     }
     this.proximityDistance = 10
@@ -77,6 +77,8 @@ export class ParallelLineConstraint {
     this.sendMouseRelease = () => {
       _mousePressPoint = null
     }
+    refreshLinePoints()
+
   }
   get angle() {
     return Public.getAngle(this.beginPoint, this.endPoint)

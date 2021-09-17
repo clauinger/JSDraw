@@ -30,6 +30,10 @@ import {
   ArcShapePen
 } from './ArcShapePen.js'
 
+import {
+  DrawMark
+} from './DrawMarks.js'
+
 import { grip} from './PenTools.js';
 
 const LINE_SHAPE_PEN = 'LineShapePen'
@@ -182,7 +186,7 @@ export class MultiShapePen_01 extends PenConstruct {
           /*  haloRadius      */
           this.pointRadius,
           /*  haloLineWeight  */
-          1.5,
+          1.5
         )
       }
       if (this.endPointIsSelected) {

@@ -1,3 +1,6 @@
+/*jshint esversion: 6 */
+/*jshint asi: true */
+/* jshint expr: true */
 
 import {
   Public
@@ -9,10 +12,6 @@ import {
 //**------------------------------------------------------------------------------------------ */
 //** POINT CLASS WITH DID-SET AND WILL-SET FUNCTIONALITY WHICH TRIGGERS WHEN X OR Y IS CHANGED */
 //**------------------------------------------------------------------------------------------- */
-
-/*jshint esversion: 6 */
-/*jshint asi: true */
-/* jshint expr: true */
 
 const {
   log
@@ -42,7 +41,7 @@ export class LineAnchorPoint {
       y: 0
     })
 
-    this.coordinateDistanceValues = () => {
+    this.coordinateDistanceValues = () => { //log('coordinateDistanceValues')
       const side = Public.getWhichSidePointToLine(this.point, this.referenceLine)
       this.colinearPoint.xy = Public.getPerpendicularPoint(this.referenceLine, this.point)
       const tempLineEndPoint = Public.getEndPoint(this.referencePoint, 100, this.lineAngle + 90)

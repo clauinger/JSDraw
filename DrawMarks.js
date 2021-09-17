@@ -18,7 +18,7 @@ export const DrawMark = {
   },
 
   tickCrossMark: (context, atPoint, color = DEFAULT_COLOR, dimension = 10, lineWeight = 1) => {
-    dimension *= .5
+    dimension *= 0.5
     context
       .stroke(color)
       .noFill()

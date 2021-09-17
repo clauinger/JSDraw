@@ -490,7 +490,9 @@ export const Public = {
     }
   },
 
-  getLineIntersection: (line1, line2) => {
+  getLineIntersection: (line1, line2) => {   
+    // log(line2.endPoint.y)
+    
     const line1BeginX = line1.beginPoint.x
     const line1BeginY = line1.beginPoint.y
     const line1EndX = line1.endPoint.x
@@ -499,17 +501,22 @@ export const Public = {
     const line2BeginY = line2.beginPoint.y
     const line2EndX = line2.endPoint.x
     const line2EndY = line2.endPoint.y
-
+    // log({line1BeginX , line1BeginY, line1EndX , line1EndY , line2BeginX, line2BeginY, line2EndX , line2EndY})
     let denominator, a, b, numerator1, numerator2
     let result = {
       x: null,
       y: null,
       // onLine1: false,
       // onLine2: false
+      
     };
-    denominator = ((line2EndY - line2BeginY) * (line1EndX - line1BeginX)) - ((line2EndX - line2BeginX) * (line1EndY - line1BeginY));
-    if (denominator === 0) return null;
 
+    denominator = ((line2EndY - line2BeginY) * (line1EndX - line1BeginX)) - ((line2EndX - line2BeginX) * (line1EndY - line1BeginY));
+    if (denominator === 0) {
+      log(Public.getLineLength(line2))
+    }
+    if (denominator === 0) return null;
+    
     a = line1BeginY - line2BeginY;
     b = line1BeginX - line2BeginX;
     numerator1 = ((line2EndX - line2BeginX) * a) - ((line2EndY - line2BeginY) * b);
@@ -518,13 +525,14 @@ export const Public = {
     b = numerator2 / denominator;
     result.x = line1BeginX + (a * (line1EndX - line1BeginX));
     result.y = line1BeginY + (a * (line1EndY - line1BeginY));
-
+    // log(result)
     // if (a > 0 && a < 1) {
     //     result.onLine1 = true;
     // }
     // if (b > 0 && b < 1) {
     //     result.onLine2 = true;
     // }
+
     return result;
   },
 

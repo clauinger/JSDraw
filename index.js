@@ -55,15 +55,17 @@ buttonList.forEach(buttonAndPen => {
     button,
     pen
   } = buttonAndPen
+log(pen)
+
   button.addEventListener('change', x => {
-    drawing.currentPen = pen
+    drawing.currentPenKey = pen
     if(checkedButton)checkedButton.parentElement.className = ''
 
     button.parentElement.className = 'selected'
 
   })
   if (button.checked) {
-    drawing.currentPen = pen
+    drawing.currentPenKey = pen
 
     checkedButton = button
     checkedButton.parentElement.className = 'selected'

@@ -47,15 +47,13 @@ export class BezierShapePen extends LineShapePen {
       initParent()
     }
 
-    this.didInitBeginPoint = ()=>{ log('didInitBeginPoint')
+    this.didInitBeginPoint = ()=>{ 
       beginPointControlLine = new LineShapePen( this.context,this.beginPoint,{x:this.beginPoint.x,y:this.beginPoint.y})
       beginPointControlLine.lineColor = GHOST_COLOR
       beginPointControlLine.renderOutput = false
       this.beginControlPoint = beginPointControlLine.endPoint
-
       this.pointsAnchoredToBeginPoint.push(this.beginControlPoint)
       
-
       beginControlPointGrip = grip(
         this.context,
         //** REACH LOCATION */
@@ -63,10 +61,10 @@ export class BezierShapePen extends LineShapePen {
           if(this.line.endPoint === null) return null
           const angle = Public.getLineAngle(this.line)
           return Public.getEndPoint(this.line.beginPoint,20,angle)
-        },
+        }
       )
     }
-    this.didInitEndPoint = ()=>{ log('this.didInitEndPoint')
+    this.didInitEndPoint = ()=>{
       endPointControlLine = new LineShapePen( this.context,this.endPoint,{x:this.endPoint.x,y:this.endPoint.y})
       endPointControlLine.lineColor = GHOST_COLOR
       endPointControlLine.renderOutput = false
@@ -79,7 +77,7 @@ export class BezierShapePen extends LineShapePen {
           if(this.line.endPoint === null) return null
           const angle = Public.getLineAngle(this.line) + 180
           return Public.getEndPoint(this.line.endPoint,20,angle)
-        },
+        }
       )
 
       beginControlPointGrip.setGripPoint()
@@ -121,7 +119,7 @@ export class BezierShapePen extends LineShapePen {
           this.bezier.beginPoint.x, this.bezier.beginPoint.y,
           this.bezier.beginControlPoint.x, this.bezier.beginControlPoint.y,
           this.bezier.endControlPoint.x, this.bezier.endControlPoint.y,
-          this.bezier.endPoint.x, this.bezier.endPoint.y,
+          this.bezier.endPoint.x, this.bezier.endPoint.y
         )
       }
       //* LINE SHAPE

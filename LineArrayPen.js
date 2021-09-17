@@ -28,6 +28,7 @@ import {
 import {
   PenConstruct
 } from './PenConstruct.js';
+import { Public } from './Public.js';
 
 const EMPTY_FUNCTION = () => {}
 const TRACE_MARK_COLOR = 'rgba(0,0,255,.1)'
@@ -47,13 +48,10 @@ const GHOST_COLOR = 'rgba(0,0,0,.1)'
 export class LineArrayPen extends PenConstruct {
   constructor(
     context,
-    anchorLinePen,
-    beginPoint,
-    endPoint,
-
+    anchorLinePen 
 
   ) {
-    super(context, endPoint, beginPoint)
+    super(context)
 
     this.context = context
     this.lineColor = GHOST_COLOR
@@ -68,14 +66,19 @@ export class LineArrayPen extends PenConstruct {
       length = newValue
     }
 
-    let distance = 20
+
     this.anchorLinePen = anchorLinePen
     this.getAnchorLinePen = () => {
       return this.anchorLinePen
     }
-
-    this.anchorLinePen.didInitEndPoint = () => {
+    this.didInitEndPoint = ()=>{}
+    //TODO: MAKE FOR APPENDING DID SET FUNCTION LIKE THAT OF POINT OBSERVABLE DID SET STACK
+    //* THIS CURRENT HANDELING IS PROVISIONAL
+    const runPreviousDidset = this.anchorLinePen.didInitEndPoint
+    this.anchorLinePen.didInitEndPoint = () => { 
+      runPreviousDidset()
       this.init()
+      this.didInitEndPoint()
     }
     this.context = context
 
@@ -87,9 +90,6 @@ export class LineArrayPen extends PenConstruct {
       if (this.lineAnchorPoint.distancePoint)
         DrawMark.tickCrossMark(this.context, this.lineAnchorPoint.distancePoint, TRACE_MARK_COLOR, 12, 1)
 
-      if (this.testPoint)
-        DrawMark.pointCaptureHalo(this.context, this.testPoint, 'purple', 15, 1)
-
       if (this.linearPointArray){
         this.linearPointArray.pointArray.forEach(pt => {
           DrawMark.tickCrossMark(this.context, pt.xy, TRACE_MARK_COLOR, 8, 1)
@@ -97,8 +97,8 @@ export class LineArrayPen extends PenConstruct {
       }
       arrayLines.forEach((line,i)=>{
         if (i >= this.linearPointArray.pointCount)return 
-        // this.context.stroke(TRACE_MARK_COLOR)
-        // this.context.line(line.beginPoint.x,line.beginPoint.y,line.endPoint.x,line.endPoint.y,)
+        this.context.stroke(TRACE_MARK_COLOR)
+        this.context.line(line.beginPoint.x,line.beginPoint.y,line.endPoint.x,line.endPoint.y)
       })
     }
 
@@ -117,32 +117,35 @@ export class LineArrayPen extends PenConstruct {
       return arrayLines.filter((ln,i)=>i < count)
     }
 
-    const refreshArrayLines = ()=>{
+    const refreshArrayLines = ()=>{ log('refreshArrayLines')
       if(this.linearPointArray.pointCount > arrayLines.length){
         const start = arrayLines.length 
-        for (let i = start; i < this.linearPointArray.pointCount; i++) { //log(i)
+        for (let i = start; i < this.linearPointArray.pointCount; i++) { 
           const pt2 = this.linearPointArray.pointArray[i].xy
           const newEndPoint = new PointObservable(pt2)
           const newPLine = new ParallelLineConstraint(this.linearPointArray.pointArray[i], newEndPoint, this.anchorLinePen)
           arrayLines.push(newPLine)
+          newPLine.endPoint.xy = newPLine.endPoint.xy
+          this.anchorLinePen.re
         }
       }
       this.pointCountDidChange()
     }
+    this.refreshArrayLines = refreshArrayLines
 
 
-    this.mousePressEventStack.mousePressOnparallelLineConstraintEndPoint = {
+    this.mousePressEventStack.mousePressOnParallelLineConstraintEndPoint = {
       evaluate: (mousePressPoint, parallelLineConstraint = this.parallelLineConstraint) => {
+        if(!parallelLineConstraint)return
         return parallelLineConstraint.sendMousePress(mousePressPoint)
       },
-      execute: () => {
+      execute: () => { 
         this.defineEventFunctions({ 
           mouseDragContinue: (mouseDragPoint) => {
             this.parallelLineConstraint.sendMouseDrag(mouseDragPoint)
           },
           mouseRelease: () => {
             this.parallelLineConstraint.sendMouseRelease()
-            // log(arrayLines.length)
           },
         })
       }
@@ -152,7 +155,7 @@ export class LineArrayPen extends PenConstruct {
       evaluate: (mousePressPoint, lineAnchorPoint = this.lineAnchorPoint) => {
         return lineAnchorPoint.sendMousePress(mousePressPoint)
       },
-      execute: (info) => {///log('anchor')
+      execute: (info) => {log('anchor') 
         this.defineEventFunctions({
           mouseDragContinue: (mouseDragPoint) => {
             this.lineAnchorPoint.sendMouseDrag(mouseDragPoint)
@@ -165,21 +168,16 @@ export class LineArrayPen extends PenConstruct {
     }
   } //** CLOSE CONSTRUCTOR */
 
-  // get length() {
-  //   return this.getLength()
-  // }
-  // set length(newValue) {
-  //   this.setLength(newValue)
-  // }
 
-  get arrayLines (){
+  get arrayLines (){ 
     return this.getArrayLines()
   }
 
   get arrayCount (){
     return this.linearPointArray.pointCount
   }
-
-  
+  get arrayGripPoint (){
+    return this.lineAnchorPoint
+  }
 
 }

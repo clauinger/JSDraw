@@ -43,6 +43,11 @@ import {
 } from './PenConstruct.js'
 import { Public } from './Public.js';
 
+import {
+  DrawMark
+  
+} from './DrawMarks.js'
+
 const {
   log
 } = console
@@ -59,7 +64,6 @@ function detectLeftButton(evt) {
 
 
 export const JSDraw = (parentContainerId, canvasWidth = 600, canvasHeight = 600) => {
-
   const NULL_OBJECT = {
     draw: () => {},
     drawLoop: () => {},
@@ -69,7 +73,7 @@ export const JSDraw = (parentContainerId, canvasWidth = 600, canvasHeight = 600)
     sendMouseDrag: () => {},
     sendMouseRelease: () => {}
   }
-  let currentPen = NULL_OBJECT
+  let _currentPen = NULL_OBJECT
   let _context
 
   const createPenSet = () => { 
@@ -112,55 +116,54 @@ export const JSDraw = (parentContainerId, canvasWidth = 600, canvasHeight = 600)
         if (!loadedPen.universalShapePen) loadedPen.universalShapePen = new UniversalShapePen(_context)
         return loadedPen.universalShapePen
       },
-      get multiShapePen_01() {
+      get multiShapePen_01() { 
         if (!loadedPen.multiShapePen_01) loadedPen.multiShapePen_01 = new MultiShapePen_01(_context)
         return loadedPen.multiShapePen_01
       },
-      get multiShapePen_01() {
-        if (!loadedPen.multiShapePen_01) loadedPen.multiShapePen_01 = new MultiShapePen_01(_context)
-        return loadedPen.multiShapePen_01
-      },
-      get shapeCutLinePen() {
+
+      get shapeCutLinePen() { 
+        //TODO: THIS WILL NEED TO BECOME IT'S OWN PEN CLASS
         if (!loadedPen.shapeCutLinePen) { 
-          //TODO REFACTORING NEEDED. BOX CUT NEEDS TO HAVE WAY TO PASS A SHAPE PEN
+          //TODO: REFACTORING NEEDED. BOX CUT NEEDS TO HAVE WAY TO PASS A SHAPE PEN
           const boxCutShapePen = new BoxCutShapePen(_context)
-          const arrayPen = new LineArrayPen(_context , boxCutShapePen)//, {x:22,y:4}, {x:5,y:4})
-          arrayPen.pointCountDidChange = ()=>{
-            if(boxCutShapeArray.length < arrayPen.arrayCount){
-              for (let i = boxCutShapeArray.length; i < arrayPen.arrayCount  ; i++) {
-                const boxCutShape = new BoxCutShapePen(_context, null, null, arrayPen.arrayLines[i] )
+          const lineArrayPen = new LineArrayPen(_context , boxCutShapePen)
+          lineArrayPen.pointCountDidChange = ()=>{
+            if(boxCutShapeArray.length < lineArrayPen.arrayCount){
+              for (let i = boxCutShapeArray.length; i < lineArrayPen.arrayCount  ; i++) {
+                const boxCutShape = new BoxCutShapePen(_context, null, null, lineArrayPen.arrayLines[i] )
                 boxCutShapeArray.push(boxCutShape)
               }
             }
-            //TODO REFACTORING NEEDED. BELOW IS PART OF A MESS IN CODE
+
+            //TODO: REFACTORING NEEDED. BELOW IS PART OF A MESS IN CODE
             boxCutShapeArray.forEach(boxCut =>{if(boxCut.shapePen)boxCut.shapePen.hideShapeTypeGrip = true})
-
-
           }
 
           let boxCutShapeArray = []
-          
           const penStack = new PenConstruct()
           loadedPen.shapeCutLinePen = penStack
-          // const beginPoint = new PointObservable({x:300,y:90})
-          // const endPoint = new PointObservable({x:580,y:400})
 
-          // const beginPoint = {x:200,y:50}
-          // const endPoint = {x:550,y:400}
-
-          // testLine.conformToLineReference()
+          const boxCutShapePenDidInitEndPoint = boxCutShapePen.didInitEndPoint
+          boxCutShapePen.didInitEndPoint = ()=>{ 
+            boxCutShapePenDidInitEndPoint()
+            penStack.beginPoint = boxCutShapePen.beginPoint
+            penStack.endPoint = boxCutShapePen.endPoint
+            penStack.beginPoint.xy = {x:34,y:90}
+            penStack.endPoint.xy = {x:334,y:390}
+            boxCutShapePen.conformToLineReference()
+            lineArrayPen.arrayGripPoint.xy = {x:150,y:60}
+          }
 
           penStack.drawLoop = ()=>{
             boxCutShapePen.drawLoop()
-            arrayPen.drawLoop()
+            lineArrayPen.drawLoop()
             boxCutShapeArray.forEach((boxCutShape, i) => {
-              if(i < arrayPen.arrayCount )boxCutShape.drawLoop()
+              if(i < lineArrayPen.arrayCount )boxCutShape.drawLoop()
             })
-
           }
           penStack.mousePressEventStack = {
             mousePressOnLineArrayPen : {
-              evaluate : (mousePressPoint, _arrayPen = arrayPen)=>{
+              evaluate : (mousePressPoint, _arrayPen = lineArrayPen)=>{
                 const result = _arrayPen.sendMousePress(mousePressPoint)
                 if (result) return {arrayPen : _arrayPen , mousePressPoint}
               },
@@ -191,9 +194,10 @@ export const JSDraw = (parentContainerId, canvasWidth = 600, canvasHeight = 600)
                 })
               }
             },
-            
           }
+          
         }
+        
         return loadedPen.shapeCutLinePen
       },
     }
@@ -220,7 +224,7 @@ export const JSDraw = (parentContainerId, canvasWidth = 600, canvasHeight = 600)
           x,
           y
         }
-        currentPen.sendMousePress(mousePoint)
+        _currentPen.sendMousePress(mousePoint)
         return false
       })
       ctx.mousePressed(() => {
@@ -230,7 +234,7 @@ export const JSDraw = (parentContainerId, canvasWidth = 600, canvasHeight = 600)
           y: context.mouseY
         }
         myConsole.innerHTML = `console: mousePressPoint: {x:${mousePoint.x}, y:${mousePoint.y}}`
-        currentPen.sendMousePress(mousePoint)
+        _currentPen.sendMousePress(mousePoint)
         return false
       })
       ctx.mousePressed(() => {
@@ -238,43 +242,43 @@ export const JSDraw = (parentContainerId, canvasWidth = 600, canvasHeight = 600)
           x: context.mouseX,
           y: context.mouseY
         }
-        currentPen.sendMousePress(mousePoint)
+        _currentPen.sendMousePress(mousePoint)
       })
       ctx.touchMoved(() => {
-        currentPen.sendMouseDrag({
+        _currentPen.sendMouseDrag({
           x: context.mouseX,
           y: context.mouseY
         })
       })
       ctx.mouseMoved(() => {
-        currentPen.sendMouseDrag({
+        _currentPen.sendMouseDrag({
           x: context.mouseX,
           y: context.mouseY
         })
       })
 
       ctx.touchEnded(() => {
-        currentPen.sendMouseRelease({
+        _currentPen.sendMouseRelease({
 
           x: context.mouseX,
           y: context.mouseY
         })
       })
       ctx.mouseMoved(() => {
-        currentPen.sendMouseDrag({
+        _currentPen.sendMouseDrag({
           x: context.mouseX,
           y: context.mouseY
         })
       })
       ctx.touchEnded(() => {
-        currentPen.sendMouseRelease({
+        _currentPen.sendMouseRelease({
           x: context.mouseX,
           y: context.mouseY
         })
       })
 
       ctx.mouseReleased(() => {
-        currentPen.sendMouseRelease({
+        _currentPen.sendMouseRelease({
           x: context.mouseX,
           y: context.mouseY
         })
@@ -283,16 +287,16 @@ export const JSDraw = (parentContainerId, canvasWidth = 600, canvasHeight = 600)
 
     context.draw = function () {
       context.background(_backgroundColor);
-      if (currentPen) currentPen.drawLoop()
+      if (_currentPen) _currentPen.drawLoop()
     };
   };
-  let currentPenKey
+  let _currentPenKey
 
   const session = new p5(s, parentContainerId)
 
-  function recordUserPenAction(_pen = currentPen) {
-    const _record = [{penKey :currentPenKey}]
-    const _key = currentPenKey
+  function recordUserPenAction(_pen = _currentPen) {
+    const _record = [{penKey :_currentPenKey}]
+    const _key = _currentPenKey
     const startTime = Date.now()
     return {
       isRecordPen: true,
@@ -355,11 +359,11 @@ export const JSDraw = (parentContainerId, canvasWidth = 600, canvasHeight = 600)
     const penkey = record[0].penKey
     playBackPen = null
     playBackPen = createPenSet()[penkey]
-    currentPen = {
+    _currentPen = {
       draw: () => {},
       drawLoop:  () => { 
         _context.clear()
-        if (currentEvent) State.drawCross(
+        if (currentEvent) DrawMark.tickCrossMark(
           _context,
           currentEvent.mousePoint || {
             x: 0,
@@ -393,37 +397,13 @@ export const JSDraw = (parentContainerId, canvasWidth = 600, canvasHeight = 600)
         // if((i === record.length - 1) && loopRepeat) log(record[0])
       }, event.time)
     })
-    // let go = true
-    // let i = 0
-    // while (go) { 
-    //   const event = record[i]
-    //   setTimeout(() => {
-    //     currentEvent = event
-    //     if(event.type === 'press') {
-    //       playBackPen.sendMousePress(event.mousePoint)
-    //     } else  if(event.type === 'drag') {
-    //       playBackPen.sendMouseDrag(event.mousePoint)
-    //     } else  if(event.type === 'release') {
-    //       playBackPen.sendMouseRelease(event.mousePoint)
-    //     }
-    //   }, event.time)
-
-
-    //   i++
-    //   const isAtEndOfEventLoop = i === (record.length - 1)
-    //   if (isAtEndOfEventLoop && loopRepeat){ 
-    //     i = 0
-    //     go = false
-    //   } else if(isAtEndOfEventLoop) go = false
-    // }
-
   }
 
   //** BELOW IS TO DETECT IF MOUSE LEFT BUTTON IS RELEASED OUTSIDE OF CANVAS */
   document.getElementById(parentContainerId).addEventListener('mouseenter', (e) => {
     const leftBtn = detectLeftButton(e)
     if (!leftBtn) {
-      currentPen.sendMouseRelease()
+      _currentPen.sendMouseRelease()
     }
   })
 
@@ -441,37 +421,39 @@ export const JSDraw = (parentContainerId, canvasWidth = 600, canvasHeight = 600)
       playBackRecord(record)
     },
     startRecording : () => {
-      currentPen = recordUserPenAction(currentPen)
+      _currentPen = recordUserPenAction(_currentPen)
     },
 
     stopRecording : () => {
-
-      record = currentPen.record
-      currentPen = currentPen.pen
+      record = _currentPen.record
+      _currentPen = _currentPen.pen
     },
 
     playRecording: () => {
       playBackRecord(getRecord())
     },
 
-    get currentPen() {
-      return currentPenKey
+    get currentPenKey() {
+      return _currentPenKey
     },
 
-    set currentPen(key) {
-      currentPenKey = key
-      if (penSet[key]) currentPen = penSet[key]
-      currentPen.key = key
+    set currentPenKey(key) {
+      _currentPenKey = key
+      if (penSet[key]) _currentPen = penSet[key]
+      _currentPen.key = key
     },
-
 
     get backgroundColor() {
       return _backgroundColor
     },
     set backgroundColor(clr) {
-
       _backgroundColor = clr
     },
+
+    get currentPen(){
+ 
+      return _currentPen
+    }
   }
 }
 
