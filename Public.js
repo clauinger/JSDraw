@@ -255,24 +255,7 @@ export const Public = {
     return findings
   },
 
-
-  // isNodeKind: (point) => {
-  //   if (point) {} else {
-  //     return false
-  //   }
-  //   if (point.kind) {} else {
-  //     return false
-  //   }
-  //   if (point.x) {} else {
-  //     return false
-  //   }
-  //   if (point.y) {} else {
-  //     return false
-  //   }
-  //   return point.kind === 'node'
-  // },
-
-  whatThisIs: (obj) => { //formerly what
+  whatThisIs: (obj) => {
     if (typeof (obj) === "undefined") return "undefined";
     if (obj === null) return "Null";
     var res = Object.prototype.toString.call(obj).match(/^\[object\s(.*)\]$/)[1];
@@ -455,9 +438,6 @@ export const Public = {
 
   getArc: (point1, point2, centerPoint, direction = 'clockwise') => {
     if (!centerPoint) return
-
-
-
     const diameter = Public.getLineLength({
       beginPoint: centerPoint,
       endPoint: {
@@ -477,11 +457,9 @@ export const Public = {
       endPoint: {
         x: point2.x,
         y: point2.y
-      } //point2
+      }
     })
-
     return {
-      //context.arc(x, y, diameter, diameter, beginAngle, endAngle)
       x: centerPoint.x,
       y: centerPoint.y,
       diameter,
@@ -491,8 +469,6 @@ export const Public = {
   },
 
   getLineIntersection: (line1, line2) => {   
-    // log(line2.endPoint.y)
-    
     const line1BeginX = line1.beginPoint.x
     const line1BeginY = line1.beginPoint.y
     const line1EndX = line1.endPoint.x
@@ -501,20 +477,13 @@ export const Public = {
     const line2BeginY = line2.beginPoint.y
     const line2EndX = line2.endPoint.x
     const line2EndY = line2.endPoint.y
-    // log({line1BeginX , line1BeginY, line1EndX , line1EndY , line2BeginX, line2BeginY, line2EndX , line2EndY})
     let denominator, a, b, numerator1, numerator2
     let result = {
       x: null,
       y: null,
-      // onLine1: false,
-      // onLine2: false
-      
     };
 
     denominator = ((line2EndY - line2BeginY) * (line1EndX - line1BeginX)) - ((line2EndX - line2BeginX) * (line1EndY - line1BeginY));
-    if (denominator === 0) {
-      log(Public.getLineLength(line2))
-    }
     if (denominator === 0) return null;
     
     a = line1BeginY - line2BeginY;
@@ -525,14 +494,6 @@ export const Public = {
     b = numerator2 / denominator;
     result.x = line1BeginX + (a * (line1EndX - line1BeginX));
     result.y = line1BeginY + (a * (line1EndY - line1BeginY));
-    // log(result)
-    // if (a > 0 && a < 1) {
-    //     result.onLine1 = true;
-    // }
-    // if (b > 0 && b < 1) {
-    //     result.onLine2 = true;
-    // }
-
     return result;
   },
 
@@ -612,7 +573,7 @@ export const Public = {
       return { x :moveToPoint.x + nX , y : moveToPoint.y + nY}
     })
   },
-  getWhichSidePointToLine : (point, lineReference, print) =>{ 
+  getWhichSidePointToLine : (point, lineReference) =>{ 
     const lineBeginPoint = lineReference.beginPoint.xy || lineReference.beginPoint
     const lineEndPoint = lineReference.endPoint.xy || lineReference.endPoint
     const lineAngle = Public.getAngle(lineBeginPoint,lineEndPoint )
@@ -620,7 +581,7 @@ export const Public = {
     const angle = Math.round( Public.getAngle(point, perpendicularPoint) )
     let deltaAngle = angle -  Math.round( lineAngle )
     deltaAngle = deltaAngle < 0 ? 360 + deltaAngle : deltaAngle
-    return deltaAngle === 270 ?  'right' : 'left'
+    return deltaAngle === 270 ?  'left' :  'right' 
   },
 
   generateUUID : ()=>{

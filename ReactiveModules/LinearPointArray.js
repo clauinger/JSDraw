@@ -2,6 +2,9 @@
 //** THIS IS A REACTIVE LINE ARRAY PARAMETRIC                                                   */
 //** IT SUBDIVIDES A LINE AND PLACES COLINEAR POINTS                                            */
 //**------------------------------------------------------------------------------------------   */
+/*jshint esversion: 6 */
+/*jshint asi: true */
+/* jshint expr: true */
 
 import {
   PointObservable
@@ -11,9 +14,6 @@ import {
   Public
 } from '../Public.js'
 
-/*jshint esversion: 6 */
-/*jshint asi: true */
-/* jshint expr: true */
 
 const EMPTY_FUNCTION = () => {}
 
@@ -22,11 +22,12 @@ const {
 } = console
 
 export class LinearPointArray {
+  //* _._._._
   //** THIS IS TO ENFORCE THAT WHEN ONE POINT IS MOVED, THE OTHER IS CORRECTED TO SPECIFIED ANGLE*//
   constructor(
     beginPoint,
     endPoint,
-    incrementDistance = 20,
+    incrementDistance = 20
   ) {
     this.beginPoint = Public.whatThisIs(beginPoint) === 'PointObservable' ? beginPoint : new PointObservable(beginPoint)
     this.endPoint = Public.whatThisIs(endPoint) === 'PointObservable' ? endPoint : new PointObservable(endPoint)
@@ -46,8 +47,6 @@ export class LinearPointArray {
         //** IF ONE POINT IS MOVED, ARRAY IS RECONFIGURED*/
         function: () => {
           if (this.pointCount > pointArray.length) {
-            // const deficit = this.pointCount - pointArray.length
-            // for (let i = 0; i < deficit; i++) {
             for (let i = pointArray.length ; i < this.pointCount; i++) {
               const newPt = new PointObservable()
               pointArray.push(newPt)
@@ -93,7 +92,6 @@ export class LinearPointArray {
   }
 
   get pointCount() {
-
     return Math.floor(this.totalDistance / this.incrementDistance)
   }
   get pointArray() {

@@ -66,7 +66,6 @@ export class LineArrayPen extends PenConstruct {
       length = newValue
     }
 
-
     this.anchorLinePen = anchorLinePen
     this.getAnchorLinePen = () => {
       return this.anchorLinePen
@@ -81,7 +80,6 @@ export class LineArrayPen extends PenConstruct {
       this.didInitEndPoint()
     }
     this.context = context
-
     this.drawLoop = () => {
       if (this.lineAnchorPoint) DrawMark.pointCaptureHalo(this.context, this.lineAnchorPoint.xy, 'red', 12)
       if (!this.lineAnchorPoint) return
@@ -117,7 +115,7 @@ export class LineArrayPen extends PenConstruct {
       return arrayLines.filter((ln,i)=>i < count)
     }
 
-    const refreshArrayLines = ()=>{ log('refreshArrayLines')
+    const refreshArrayLines = ()=>{ 
       if(this.linearPointArray.pointCount > arrayLines.length){
         const start = arrayLines.length 
         for (let i = start; i < this.linearPointArray.pointCount; i++) { 
@@ -126,13 +124,11 @@ export class LineArrayPen extends PenConstruct {
           const newPLine = new ParallelLineConstraint(this.linearPointArray.pointArray[i], newEndPoint, this.anchorLinePen)
           arrayLines.push(newPLine)
           newPLine.endPoint.xy = newPLine.endPoint.xy
-          this.anchorLinePen.re
         }
       }
       this.pointCountDidChange()
     }
     this.refreshArrayLines = refreshArrayLines
-
 
     this.mousePressEventStack.mousePressOnParallelLineConstraintEndPoint = {
       evaluate: (mousePressPoint, parallelLineConstraint = this.parallelLineConstraint) => {
@@ -155,7 +151,7 @@ export class LineArrayPen extends PenConstruct {
       evaluate: (mousePressPoint, lineAnchorPoint = this.lineAnchorPoint) => {
         return lineAnchorPoint.sendMousePress(mousePressPoint)
       },
-      execute: (info) => {log('anchor') 
+      execute: (info) => {
         this.defineEventFunctions({
           mouseDragContinue: (mouseDragPoint) => {
             this.lineAnchorPoint.sendMouseDrag(mouseDragPoint)
@@ -178,6 +174,9 @@ export class LineArrayPen extends PenConstruct {
   }
   get arrayGripPoint (){
     return this.lineAnchorPoint
+  }
+  get side(){ //* RETURN STRING 'left' OR 'right'
+    return Public.getWhichSidePointToLine(this.linearPointArray.endPoint, this.anchorLinePen)
   }
 
 }

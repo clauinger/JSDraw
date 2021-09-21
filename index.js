@@ -6,7 +6,7 @@
 /*jshint asi: true */
 /* jshint expr: true */
 
-import { JSDraw } from './WorkSpace.js'
+import { JSDraw , make3DDisplay } from './WorkSpace.js'
 
 const {log} = console
 
@@ -55,7 +55,7 @@ buttonList.forEach(buttonAndPen => {
     button,
     pen
   } = buttonAndPen
-log(pen)
+
 
   button.addEventListener('change', x => {
     drawing.currentPenKey = pen
@@ -85,3 +85,71 @@ const setBg = () => {
 //   }
 // }, false);
 
+let sketch = function(p) {
+  p.setup = function(){
+    p.createCanvas(400,400,p.WEBGL)
+    p.background(0);
+  }
+  p.draw = function (){
+    if(!drawing.currentPen.getClosedShapeCollection)return 
+    const closedShapes  = drawing.currentPen.getClosedShapeCollection()
+    p.background(100)
+    const ORBIT_LEVEL = 3
+    p.orbitControl(ORBIT_LEVEL,ORBIT_LEVEL,ORBIT_LEVEL)
+    p.scale(0.5)
+
+    p.translate((p.width / 2) * -1, (p.height / 2) * -1)
+    if(!closedShapes)return
+    closedShapes.forEach((closedShape,i)=>{
+      const color = i === 0 ? 200: 'white'
+      p.fill(color)
+      p.beginShape();
+      p.translate(0, 0, 15)
+      // z++
+      if(!closedShape)return
+      closedShape.forEach(pt=>{
+        p.vertex(pt.x, pt.y)
+      })
+      p.endShape(p.CLOSE);
+    })
+    // if(autoRotateView)angle += 0.009
+  }
+};
+
+// new p5(sketch, perspectiveDisplay);
+
+make3DDisplay(perspectiveDisplay, drawing)
+
+// function make3DDisplay (container, width = 400, height = 400){
+//   let sketch = function(p) {
+//     p.setup = function(){
+//       p.createCanvas(width,height,p.WEBGL)
+//       p.background(0);
+//     }
+//     p.draw = function (){
+//       if(!drawing.currentPen.getClosedShapeCollection)return 
+//       const closedShapes  = drawing.currentPen.getClosedShapeCollection()
+//       p.background(100)
+//       const ORBIT_LEVEL = 3
+//       p.orbitControl(ORBIT_LEVEL,ORBIT_LEVEL,ORBIT_LEVEL)
+//       p.scale(0.5)
+  
+//       p.translate((p.width / 2) * -1, (p.height / 2) * -1)
+//       if(!closedShapes)return
+//       closedShapes.forEach((closedShape,i)=>{
+//         const color = i === 0 ? 200: 'white'
+//         p.fill(color)
+//         p.beginShape();
+//         p.translate(0, 0, 15)
+//         // z++
+//         if(!closedShape)return
+//         closedShape.forEach(pt=>{
+//           p.vertex(pt.x, pt.y)
+//         })
+//         p.endShape(p.CLOSE);
+//       })
+//       // if(autoRotateView)angle += 0.009
+//     }
+//   };
+//   new p5(sketch, container);
+// }

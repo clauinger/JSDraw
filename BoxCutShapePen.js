@@ -32,11 +32,11 @@ import {
 } from './PenTools.js'
 
 
-// const {
-//   log
-// } = console
+const {
+  log
+} = console
 
-const log = () => {}
+// const log = () => {}
 
 
 const NULL_OBJECT = {
@@ -83,19 +83,19 @@ export class BoxCutShapePen extends PenConstruct {
       lineReference.endPoint.appendDidSet(()=>{conformToLineReference()})
     }
     let tempLine
-    const conformToLineReference = (line = lineReference)=>{ log('conformToLineReference')
-    // log(this.beginPoint.xy)
+    const conformToLineReference = (line = lineReference)=>{
       //* IF THERE IS NO LINE REFERENCE OBJECT, WE DEFAULT TO USE OF 
       // * CURRENT POINTS AND FORCE THEM TO BOX PARIMETER
       if(!line && this.beginPoint && this.endPoint) line = {beginPoint: this.beginPoint.xy , endPoint: this.endPoint.xy }
       tempLine = line
-log(tempLine)
-if(lineReference) log(Public.getLineLength(tempLine))
-//* BUG
+      // log(tempLine)
+      // if(lineReference) log(Public.getLineLength(tempLine))
+      //TODO: ADDRESS BUG NOTE HERE.. TECH DEBT OR NOT??
+      //* BUG
       tempLine = getPoints()
-log(tempLine)
+      // log(tempLine)
       if(!tempLine) return
-// log(tempLine.beginPoint)
+      // log(tempLine.beginPoint)
 
       const needsToBeFlipped = Math.abs( Public.getLineAngle(line) - Public.getLineAngle(tempLine) ) > 1
       if(needsToBeFlipped){
@@ -108,6 +108,7 @@ log(tempLine)
 
       this.beginPoint.lineKey = tempLine.beginPoint.lineKey
       this.endPoint.lineKey = tempLine.endPoint.lineKey
+      this.init()
     }
 
     this.lineIsSelected = false
@@ -196,9 +197,12 @@ log(tempLine)
     }
 
     const gatherShapeOutputPoints = (beginPoint, endPoint) => {
+      if(!endPoint)return null
+      if(!beginPoint.lineKey)return []
       const boxContainer = this.getboxContainer()
       const points = new Set()
-      // log(beginPoint)
+      // if(beginPoint.lineKey)points.add(boxContainer[beginPoint.lineKey].endPoint)
+      // if(endPoint.lineKey) points.add(boxContainer[endPoint.lineKey].beginPoint)
       points.add(boxContainer[beginPoint.lineKey].endPoint)
       points.add(boxContainer[endPoint.lineKey].beginPoint)
 
@@ -217,6 +221,10 @@ log(tempLine)
         [...points][0], boxContainer[nextLineKey].endPoint, [...points][1]
       ]
     }
+    this.gatherShapeOutputPoints = (point1,point2) =>{ 
+      // log(!point1)
+      return gatherShapeOutputPoints(point1,point2)
+    }
 
     const gatherShapeOutputPointsBothSides = () => { 
       const side1 = gatherShapeOutputPoints(this.beginPoint, this.endPoint)
@@ -226,6 +234,7 @@ log(tempLine)
         side2
       }
     }
+ 
 
     let arcPoints
     this.side1Color = 'rgba(230,100,100,.5)'
@@ -243,6 +252,7 @@ log(tempLine)
       this.context.endShape(this.context.CLOSE)
     }
     const renderSide1 = () => {
+if(!this.shapePen)return
       const shapeOutput = this.shapePen.shapeOutput || []
       const boxPoints = gatherShapeOutputPointsBothSides().side1
       if (shapeOutput[0] === 'bezier') {
@@ -277,6 +287,7 @@ log(tempLine)
     this.renderSides = lineReference ? false : true
 
     this.drawLoop = () => {
+      //TODO: RECTIFY THIS TERRIBLE MESS-- SOULD NOT CALL ANYTHING IN DRAWLOOP NOT RELATED TO DRAWING
       this.init()
       if (!this.context) return
 
@@ -290,9 +301,6 @@ log(tempLine)
       //** RENDER SIDE 1 */
       if(!isLineReferenced){
         renderSide1()
-        // const pointMarkSize = isLineReferenced ? 4 : 10
-        // if (this.beginPoint) DrawMark.pointCaptureHalo(this.context, this.beginPoint.xy, 'purple', pointMarkSize)
-        // if (this.endPoint) DrawMark.pointCaptureHalo(this.context, this.endPoint.xy, 'magenta', pointMarkSize)
         this.rotateGrip.draw()
       }
 
@@ -338,14 +346,15 @@ log(tempLine)
       }
       if (!this.shapePen) this.shapePen = shape || new MultiShapePen_01(context, beginPointXY, endPointXY)
 
-
+      // log(beginPointXY)
       this.beginPoint = new PointObservable(beginPointXY)
-      this.shapePen.beginPoint.appendDidSet(()=>{})
+      // this.shapePen.beginPoint.appendDidSet(()=>{})
       this.endPoint = new PointObservable(endPointXY)
       this.beginPoint.lineKey = 'leftLine'
       this.endPoint.lineKey = 'rightLine'
       this.beginPoint.didSet = () => {
         if (!this.shapePen) return
+        // if(isLineReferenced)log(this.beginPoint.x)
         this.shapePen.beginPoint.xy = this.beginPoint.xy
       }
       this.endPoint.didSet = () => {
@@ -381,7 +390,6 @@ log(tempLine)
       lineKeys.forEach(lineKey => {
         const boxLine = this.getboxContainer()[lineKey]
         const intersectionPoint = Public.getLineIntersection(boxLine, tempLine)
-        log(intersectionPoint)
         if(!intersectionPoint)return
         intersectionPoint.lineKey = lineKey
         if (Public.getPointIsInsideBox(intersectionPoint, this.boxContainer.side)) points.push(intersectionPoint)
@@ -651,6 +659,7 @@ log(tempLine)
       },
     }
     this.conformToLineReference = conformToLineReference
+    // this.init()
   } //** CLOSE CONSTRUCTOR */
 
   get boxCenterPoint() {
@@ -678,4 +687,12 @@ log(tempLine)
     return this.shapePen.line
   }
 
+  get rightSideOfCutRect (){
+    return this.gatherShapeOutputPoints(this.beginPoint, this.endPoint)
+  }
+  get leftSideOfCutRect (){
+    return this.gatherShapeOutputPoints(this.endPoint, this.beginPoint)
+  }
+
 }
+

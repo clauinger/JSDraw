@@ -2,13 +2,9 @@ body {
  margin:  20px;
  font-family: 'Montserrat', Courier;
  font-size: small;
-<<<<<<< HEAD
- width: 100%;
- height:100%;
-=======
+
  padding: 40px;
  background: cadetblue;
->>>>>>> f8e3e28c8eae7d8ce92c6c507d24be71340e34b1
 }
 
 .radio-toolbar input[type="radio"] {
@@ -42,12 +38,6 @@ body {
   background: blue;
 }
 
-<<<<<<< HEAD
-#drawBox{
-  margin: 20px;
-}
-
-
 .lockView{
   height: 100%;
   overflow: hidden;
@@ -69,22 +59,19 @@ body {
   position: fixed;
   width: 100%;
   height:100%;
-  /* background: red; */
   overflow: auto;
   -webkit-user-select: none;  /* Chrome all / Safari all */
   -moz-user-select: none;     /* Firefox all */
   -ms-user-select: none;      /* IE 10+ */
   user-select: none;    
-=======
-
-#drawBox{
-  width: 300px;
 }
 
-button:disabled,
-button[disabled]{
-  border: 1px solid #999999;
-  background-color: #cccccc;
-  color: #666666;
->>>>>>> f8e3e28c8eae7d8ce92c6c507d24be71340e34b1
+#displays{
+  display: flex;
+}
+
+#perspectiveDisplay{
+  width: 400px;
+  height: 400px;
+  background: #bfb;
 }

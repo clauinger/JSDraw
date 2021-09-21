@@ -41,7 +41,7 @@ export class LineAnchorPoint {
       y: 0
     })
 
-    this.coordinateDistanceValues = () => { //log('coordinateDistanceValues')
+    this.coordinateDistanceValues = () => {
       const side = Public.getWhichSidePointToLine(this.point, this.referenceLine)
       this.colinearPoint.xy = Public.getPerpendicularPoint(this.referenceLine, this.point)
       const tempLineEndPoint = Public.getEndPoint(this.referencePoint, 100, this.lineAngle + 90)
@@ -52,10 +52,11 @@ export class LineAnchorPoint {
       const baseSide = Public.getWhichSidePointToLine(this.point, tempLine)
       this.distancePoint.xy = Public.getPerpendicularPoint(tempLine, this.point, true)
       this.perpendicularDistance = Public.getDistanceTwoPoints(this.point, this.colinearPoint)
-      if (side === 'left') this.perpendicularDistance *= -1
+      if (side === 'right') this.perpendicularDistance *= -1
       this.linearDistance = Public.getDistanceTwoPoints(this.referencePoint, this.colinearPoint)
-      if (baseSide === 'left') this.linearDistance *= -1
+      if (baseSide === 'right') this.linearDistance *= -1
     }
+    
     const coordinateTrackPoints = () => {
       this.colinearPoint.xy = Public.getPerpendicularPoint(this.referenceLine, this.point)
       const tempLineEndPoint = Public.getEndPoint(this.referencePoint, 100, this.lineAngle + 90)
