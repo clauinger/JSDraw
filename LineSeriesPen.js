@@ -67,7 +67,7 @@ export class LineSeriesPen extends PenConstruct {
   this.nodeColor = 'rgba(90%, 90%, 90%, .9)'
   this.selectedPointColor = 'rgba(100%, 0%, 0%, .8)'
 
-  this.lineWid = .5;
+  this.lineWid = 0.5;
 
   this.logMessage = (msg)=>{console.log(msg)}
 
@@ -390,7 +390,7 @@ export class LineSeriesPen extends PenConstruct {
      proximityDistance = this.proximityDistance,
      pointNodeCollection = this.pointNodeCollection,
      lineCollection = this.lineCollection,
-     constructAsSeries = this.constructAsSeries,
+     constructAsSeries = this.constructAsSeries
 
     ) => {
      /**------------------GUARD STATEMENTS**/
@@ -804,7 +804,7 @@ export class LineSeriesPen extends PenConstruct {
          this.cursorLineSwiper = null
         }
        })
-      },
+      }
      )
      // }
      this.defineEventFunction({

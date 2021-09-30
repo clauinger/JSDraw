@@ -43,10 +43,16 @@ const buttonList = [{
 }, {
   button: ShapeCut_button,
   pen: 'shapeCutLinePen'
+}, {
+  button: RectCutArray_button,
+  pen: 'rectCutArrayPen'
+}, {
+  button: RectCutShape_button,
+  pen: 'rectCutShapePen'
 }
 ]
 
-const drawing = JSDraw('drawBox')
+const drawing = JSDraw('drawRect')
 
 let checkedButton
 
@@ -60,16 +66,12 @@ buttonList.forEach(buttonAndPen => {
   button.addEventListener('change', x => {
     drawing.currentPenKey = pen
     if(checkedButton)checkedButton.parentElement.className = ''
-
     button.parentElement.className = 'selected'
-
   })
   if (button.checked) {
     drawing.currentPenKey = pen
-
     checkedButton = button
     checkedButton.parentElement.className = 'selected'
-
   }
 })
 
@@ -79,77 +81,19 @@ const setBg = () => {
 }
 
 
-// container.addEventListener('touchmove', function(e) {
-//   if(e.target.className === 'p5Canvas'){
-//     e.preventDefault();
-//   }
-// }, false);
+startRecording.addEventListener('click', () => {
+  log('startRecording')
+  drawing.startRecording()
+})
 
-let sketch = function(p) {
-  p.setup = function(){
-    p.createCanvas(400,400,p.WEBGL)
-    p.background(0);
-  }
-  p.draw = function (){
-    if(!drawing.currentPen.getClosedShapeCollection)return 
-    const closedShapes  = drawing.currentPen.getClosedShapeCollection()
-    p.background(100)
-    const ORBIT_LEVEL = 3
-    p.orbitControl(ORBIT_LEVEL,ORBIT_LEVEL,ORBIT_LEVEL)
-    p.scale(0.5)
+stopRecording.addEventListener('click', () => {
+  drawing.stopRecording()
+})
 
-    p.translate((p.width / 2) * -1, (p.height / 2) * -1)
-    if(!closedShapes)return
-    closedShapes.forEach((closedShape,i)=>{
-      const color = i === 0 ? 200: 'white'
-      p.fill(color)
-      p.beginShape();
-      p.translate(0, 0, 15)
-      // z++
-      if(!closedShape)return
-      closedShape.forEach(pt=>{
-        p.vertex(pt.x, pt.y)
-      })
-      p.endShape(p.CLOSE);
-    })
-    // if(autoRotateView)angle += 0.009
-  }
-};
-
-// new p5(sketch, perspectiveDisplay);
+play.addEventListener('click', () => {
+  const isPlaying = drawing.togglePlayBack(JSON.parse(outputText.value))
+  play.innerHTML = isPlaying ? 'Stop' : 'Play'
+}) 
 
 make3DDisplay(perspectiveDisplay, drawing)
 
-// function make3DDisplay (container, width = 400, height = 400){
-//   let sketch = function(p) {
-//     p.setup = function(){
-//       p.createCanvas(width,height,p.WEBGL)
-//       p.background(0);
-//     }
-//     p.draw = function (){
-//       if(!drawing.currentPen.getClosedShapeCollection)return 
-//       const closedShapes  = drawing.currentPen.getClosedShapeCollection()
-//       p.background(100)
-//       const ORBIT_LEVEL = 3
-//       p.orbitControl(ORBIT_LEVEL,ORBIT_LEVEL,ORBIT_LEVEL)
-//       p.scale(0.5)
-  
-//       p.translate((p.width / 2) * -1, (p.height / 2) * -1)
-//       if(!closedShapes)return
-//       closedShapes.forEach((closedShape,i)=>{
-//         const color = i === 0 ? 200: 'white'
-//         p.fill(color)
-//         p.beginShape();
-//         p.translate(0, 0, 15)
-//         // z++
-//         if(!closedShape)return
-//         closedShape.forEach(pt=>{
-//           p.vertex(pt.x, pt.y)
-//         })
-//         p.endShape(p.CLOSE);
-//       })
-//       // if(autoRotateView)angle += 0.009
-//     }
-//   };
-//   new p5(sketch, container);
-// }

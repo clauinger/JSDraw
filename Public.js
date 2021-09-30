@@ -79,6 +79,7 @@ export const Public = {
     return selectedLine;
   },
 
+
   getPerpendicularDistance: (point, beginPoint, endPoint) => { //formerly pDistance
     // if(!endPoint && beginPoint.endPoint)endPoint = beginPoint.endPoint
     // if(!beginPoint.x && beginPoint.beginPoint)beginPoint = beginPoint.beginPoint
@@ -497,8 +498,8 @@ export const Public = {
     return result;
   },
 
-  getPointIsInsideBox: (point, box) => {
-    return !(point.x < box.left || point.x > box.right || point.y > box.bottom || point.y < box.top)
+  getPointIsInsideRect: (point, rect) => {
+    return !(point.x < rect.left || point.x > rect.right || point.y > rect.bottom || point.y < rect.top)
   },
 
   generateArcPoints: (beginPoint, endPoint, centerPoint, direction = 'clockwise', arcLengthTarget = 10) => {
@@ -588,6 +589,22 @@ export const Public = {
     return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
       (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
     )
+  },
+  getPointIsBetweenTwoParallelLines :(point,line1,line2, messageError = false) =>{
+    try { // * LINES MUST BE PARALLEL OTHERWISE WE'LL THROW ERROR MESSAGE AND RETURN FALSE
+      const dist1 = parseFloat(Public.getPointDistanceToLine(line1.beginPoint,line2)).toPrecision(3)
+      const dist2 = parseFloat(Public.getPointDistanceToLine(line1.endPoint,line2)).toPrecision(3)
+      if(dist1 !== dist2)  throw "Lines are not parallel";
+    }
+    catch(err) {
+      if(messageError)console.error (err);
+      return false
+    }
+    const dist1 = Public.getPointDistanceToLine(point,line1)
+    const dist2 = Public.getPointDistanceToLine(point,line2)
+    const totalDitsance = parseFloat(dist1 + dist2).toPrecision(3)
+    const parallelLineDistance = parseFloat(Public.getPointDistanceToLine(line1.beginPoint,line2)).toPrecision(3)
+    return totalDitsance === parallelLineDistance
   },
 
 }

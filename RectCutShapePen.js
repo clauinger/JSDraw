@@ -46,16 +46,14 @@ const NULL_OBJECT = {
   toggleOn: () => {}
 }
 const GHOST_COLOR = 'rgba(0,0,0,.1)'
-const LINE_SHAPE_PEN = 'LineShapePen'
 const ARC_SHAPE_PEN = 'ArcShapePen'
-const BEZIER_SHAPE_PEN = 'BezierShapePen'
-const GROUP_SHAPE_PEN = 'GroupShapePen'
 
-export class BoxCutShapePen extends PenConstruct {
+
+export class RectCutShapePen extends PenConstruct {
   constructor(
     context,
     shape,
-    box,
+    rect,
     lineReference//** IF PROVIDED, THEN POSITIONING OF BEGIN POINT.  */
   ) {
     super()
@@ -63,9 +61,8 @@ export class BoxCutShapePen extends PenConstruct {
 
     //** BOX OPTIONAL CAN BE PASSED AS REFERENCE OF A BOX CONTAINER OBJECT*/
     //** OR OF A SIMPLE BOX TO WHICH ITS OWN BOX CONTAINER OBJECT IS CREATED*/
-    const boxContainerIsPassedByReference = !box ? false : box ? box.isBoxContainer === true : false
-    let boxContainer = boxContainerIsPassedByReference ? box : null
-
+    const rectContainerIsPassedByReference = !rect ? false : rect ? rect.isRectContainer === true : false
+    let rectContainer = rectContainerIsPassedByReference ? rect : null
     this.lineWid = 1;
     this.lineColor = GHOST_COLOR
     this.selectedColor = 'rgba(100%, 0%, 0%, .8)'
@@ -86,10 +83,10 @@ export class BoxCutShapePen extends PenConstruct {
     const conformToLineReference = (line = lineReference)=>{
       //* IF THERE IS NO LINE REFERENCE OBJECT, WE DEFAULT TO USE OF 
       // * CURRENT POINTS AND FORCE THEM TO BOX PARIMETER
+      if(!this.beginPoint )return
       if(!line && this.beginPoint && this.endPoint) line = {beginPoint: this.beginPoint.xy , endPoint: this.endPoint.xy }
       tempLine = line
-      // log(tempLine)
-      // if(lineReference) log(Public.getLineLength(tempLine))
+
       //TODO: ADDRESS BUG NOTE HERE.. TECH DEBT OR NOT??
       //* BUG
       tempLine = getPoints()
@@ -116,11 +113,11 @@ export class BoxCutShapePen extends PenConstruct {
     this.endPointIsSelected = false
 
     this.didInitEndPoint = () => {}
-    this.getboxContainer = () => {
-      if (boxContainer) return boxContainer
-      if (!box) { //** CREATE DEFAULT BOX*/
+    this.getrectContainer = () => {
+      if (rectContainer) return rectContainer
+      if (!rect) { //** CREATE DEFAULT BOX*/
         const offset = 40
-        box = {
+        rect = {
           x: offset,
           y: offset,
           width: this.context.width - (offset * 2),
@@ -132,7 +129,7 @@ export class BoxCutShapePen extends PenConstruct {
         y,
         width,
         height
-      } = box
+      } = rect
       const topLeftPoint = {
         x: x,
         y: y,
@@ -158,8 +155,8 @@ export class BoxCutShapePen extends PenConstruct {
       const top = y
       const bottom = height + y
       //** WRITE DEFAULT */
-      boxContainer = {
-        isBoxContainer : true,
+      rectContainer = {
+        isRectContainer : true,
         topLine: {
           beginPoint: topLeftPoint,
           endPoint: topRightPoint
@@ -193,18 +190,18 @@ export class BoxCutShapePen extends PenConstruct {
         width,
         height
       }
-      return boxContainer
+      return rectContainer
     }
 
     const gatherShapeOutputPoints = (beginPoint, endPoint) => {
       if(!endPoint)return null
       if(!beginPoint.lineKey)return []
-      const boxContainer = this.getboxContainer()
+      const rectContainer = this.getrectContainer()
       const points = new Set()
-      // if(beginPoint.lineKey)points.add(boxContainer[beginPoint.lineKey].endPoint)
-      // if(endPoint.lineKey) points.add(boxContainer[endPoint.lineKey].beginPoint)
-      points.add(boxContainer[beginPoint.lineKey].endPoint)
-      points.add(boxContainer[endPoint.lineKey].beginPoint)
+      // if(beginPoint.lineKey)points.add(rectContainer[beginPoint.lineKey].endPoint)
+      // if(endPoint.lineKey) points.add(rectContainer[endPoint.lineKey].beginPoint)
+      points.add(rectContainer[beginPoint.lineKey].endPoint)
+      points.add(rectContainer[endPoint.lineKey].beginPoint)
 
       function getNextLineKey(key) {
         return key === 'topLine' ? 'rightLine' :
@@ -214,11 +211,11 @@ export class BoxCutShapePen extends PenConstruct {
       }
       const nextLineKey = getNextLineKey(beginPoint.lineKey)
       if (nextLineKey === endPoint.lineKey) return [...points]
-      points.add(boxContainer[nextLineKey].endPoint)
+      points.add(rectContainer[nextLineKey].endPoint)
       const nextNextLineKey = getNextLineKey(nextLineKey)
       if (nextNextLineKey === endPoint.lineKey) return [...points]
       return [
-        [...points][0], boxContainer[nextLineKey].endPoint, [...points][1]
+        [...points][0], rectContainer[nextLineKey].endPoint, [...points][1]
       ]
     }
     this.gatherShapeOutputPoints = (point1,point2) =>{ 
@@ -239,24 +236,24 @@ export class BoxCutShapePen extends PenConstruct {
     let arcPoints
     this.side1Color = 'rgba(230,100,100,.5)'
 
-    const drawForm = (boxPoints , insertShape = ()=>{this.context.vertex(this.endPoint.x, this.endPoint.y)})=>{ 
+    const drawForm = (rectPoints , insertShape = ()=>{this.context.vertex(this.endPoint.x, this.endPoint.y)})=>{ 
       this.context.strokeWeight(1)
       this.context.fill(this.side1Color)
       this.context.beginShape()
-      this.context.vertex(boxPoints[0].x, boxPoints[0].y)
+      this.context.vertex(rectPoints[0].x, rectPoints[0].y)
       this.context.vertex(this.beginPoint.x, this.beginPoint.y)
       insertShape()
-      const lastPoint = boxPoints[boxPoints.length - 1]
-      if (boxPoints.length > 1) this.context.vertex(lastPoint.x, lastPoint.y)
-      if (boxPoints.length > 2) this.context.vertex(boxPoints[1].x, boxPoints[1].y)
+      const lastPoint = rectPoints[rectPoints.length - 1]
+      if (rectPoints.length > 1) this.context.vertex(lastPoint.x, lastPoint.y)
+      if (rectPoints.length > 2) this.context.vertex(rectPoints[1].x, rectPoints[1].y)
       this.context.endShape(this.context.CLOSE)
     }
     const renderSide1 = () => {
 if(!this.shapePen)return
       const shapeOutput = this.shapePen.shapeOutput || []
-      const boxPoints = gatherShapeOutputPointsBothSides().side1
+      const rectPoints = gatherShapeOutputPointsBothSides().side1
       if (shapeOutput[0] === 'bezier') {
-        drawForm(boxPoints , ()=>{
+        drawForm(rectPoints , ()=>{
           this.context.bezierVertex(
             shapeOutput[3], shapeOutput[4],
             shapeOutput[5], shapeOutput[6],
@@ -268,19 +265,19 @@ if(!this.shapePen)return
       if (this.shapePen.currentShapeType === ARC_SHAPE_PEN && this.shapePen.currentShape.arcIsEstablished) { 
         this.context.fill(this.side1Color)
         this.context.beginShape()
-        this.context.vertex(boxPoints[0].x, boxPoints[0].y)
+        this.context.vertex(rectPoints[0].x, rectPoints[0].y)
         this.context.vertex(this.beginPoint.x, this.beginPoint.y)
         if (arcPoints) arcPoints.forEach(point => this.context.vertex(point.x, point.y))
         this.context.vertex(this.endPoint.x, this.endPoint.y)
-        const lastPoint = boxPoints[boxPoints.length - 1]
-        if (boxPoints.length > 1) this.context.vertex(lastPoint.x, lastPoint.y)
-        if (boxPoints.length > 2) this.context.vertex(boxPoints[1].x, boxPoints[1].y)
+        const lastPoint = rectPoints[rectPoints.length - 1]
+        if (rectPoints.length > 1) this.context.vertex(lastPoint.x, lastPoint.y)
+        if (rectPoints.length > 2) this.context.vertex(rectPoints[1].x, rectPoints[1].y)
         this.context.endShape(this.context.CLOSE)
         return
       } 
 
       if (shapeOutput[0] === 'line' || this.shapePen.currentShapeType === ARC_SHAPE_PEN  ) {
-        drawForm(boxPoints)
+        drawForm(rectPoints)
       }
     }
 
@@ -296,7 +293,7 @@ if(!this.shapePen)return
       this.shallDrawArcSegmentPoints = false
       this.context.stroke('purple')
       this.context.strokeWeight(1)
-      this.context.rect(this.boxContainer.side.left, this.boxContainer.side.top, this.boxContainer.width, this.boxContainer.height)
+      this.context.rect(this.rectContainer.side.left, this.rectContainer.side.top, this.rectContainer.width, this.rectContainer.height)
 
       //** RENDER SIDE 1 */
       if(!isLineReferenced){
@@ -337,12 +334,12 @@ if(!this.shapePen)return
       if (isInitailized) return
       isInitailized = true
       const beginPointXY = {
-        x: this.boxContainer.leftLine.beginPoint.x,
-        y: this.boxContainer.centerPoint.y
+        x: this.rectContainer.leftLine.beginPoint.x,
+        y: this.rectContainer.centerPoint.y
       }
       const endPointXY = {
-        x: this.boxContainer.rightLine.beginPoint.x,
-        y: this.boxContainer.centerPoint.y
+        x: this.rectContainer.rightLine.beginPoint.x,
+        y: this.rectContainer.centerPoint.y
       }
       if (!this.shapePen) this.shapePen = shape || new MultiShapePen_01(context, beginPointXY, endPointXY)
 
@@ -388,12 +385,12 @@ if(!this.shapePen)return
       let lineKeys = ['topLine', 'rightLine', 'bottomLine', 'leftLine']
       const points = []
       lineKeys.forEach(lineKey => {
-        const boxLine = this.getboxContainer()[lineKey]
-        const intersectionPoint = Public.getLineIntersection(boxLine, tempLine)
+        const rectLine = this.getrectContainer()[lineKey]
+        const intersectionPoint = Public.getLineIntersection(rectLine, tempLine)
         if(!intersectionPoint)return
         intersectionPoint.lineKey = lineKey
-        if (Public.getPointIsInsideBox(intersectionPoint, this.boxContainer.side)) points.push(intersectionPoint)
-        // if (Public.getPointIsInsideBox(intersectionPoint, this.boxContainer.side)) log(intersectionPoint)
+        if (Public.getPointIsInsideRect(intersectionPoint, this.rectContainer.side)) points.push(intersectionPoint)
+        // if (Public.getPointIsInsideRect(intersectionPoint, this.rectContainer.side)) log(intersectionPoint)
       })
       return {
         beginPoint: points[0] || {x:0,y:0},
@@ -403,8 +400,8 @@ if(!this.shapePen)return
 
     this.mousePressEventStack = {
       mousePressOnRotateGrip: {
-        evaluate: (mousePressPoint, isLineReferenced, grip = this.rotateGrip ) => {
-          if(isLineReferenced)return
+        evaluate: (mousePressPoint, _isLineReferenced = isLineReferenced, grip = this.rotateGrip ) => {
+          if(_isLineReferenced)return
           const result = grip.verifyMousePress(mousePressPoint)
           if (!result) return
           result.grip = grip
@@ -449,8 +446,8 @@ if(!this.shapePen)return
       },
 
       mousePressOnBeginPoint: {
-        evaluate: (mousePressPoint, beginPoint = this.beginPoint, isLineReferenced) => {
-          if(isLineReferenced)return
+        evaluate: (mousePressPoint, beginPoint = this.beginPoint, _isLineReferenced  = isLineReferenced) => {
+          if(_isLineReferenced)return
           const hit = Public.getUserMouseClickOnPoint(mousePressPoint, 10, [beginPoint.xy])
           if (hit) return {
             point: beginPoint,
@@ -467,15 +464,15 @@ if(!this.shapePen)return
                 endPoint: this.endPoint.xy
               }
               lineKeys.forEach(lineKey => {
-                const boxLine = this.boxContainer[lineKey]
-                const intersectionPoint = Public.getLineIntersection(boxLine, newCutLine)
+                const rectLine = this.rectContainer[lineKey]
+                const intersectionPoint = Public.getLineIntersection(rectLine, newCutLine)
                 const length = Public.getLineLength({
                   beginPoint: intersectionPoint,
                   endPoint: this.endPoint.xy
                 })
                 intersectionPoint.lineKey = lineKey
                 intersectionPoint.length = length
-                if (Public.getPointIsInsideBox(intersectionPoint, this.boxContainer.side)) newBeginPoint = intersectionPoint
+                if (Public.getPointIsInsideRect(intersectionPoint, this.rectContainer.side)) newBeginPoint = intersectionPoint
               })
               if (!newBeginPoint)return
               this.beginPoint.xy = newBeginPoint
@@ -492,8 +489,8 @@ if(!this.shapePen)return
       },
 
       mousePressOnEndPoint: {
-        evaluate: (mousePressPoint, isLineReferenced) => {
-          if(isLineReferenced)return
+        evaluate: (mousePressPoint, _isLineReferenced = isLineReferenced) => {
+          if(_isLineReferenced)return
           const hit = Public.getUserMouseClickOnPoint(mousePressPoint, 10, [this.endPoint.xy])
           if (hit) return {
             point: this.endPoint,
@@ -510,8 +507,8 @@ if(!this.shapePen)return
                 beginPoint: this.beginPoint.xy
               }
               lineKeys.forEach(lineKey => {
-                const boxLine = this.boxContainer[lineKey]
-                const intersectionPoint = Public.getLineIntersection(boxLine, newCutLine)
+                const rectLine = this.rectContainer[lineKey]
+                const intersectionPoint = Public.getLineIntersection(rectLine, newCutLine)
                 try {
                   intersectionPoint.lineKey = lineKey
                 }
@@ -519,7 +516,7 @@ if(!this.shapePen)return
                   myConsole.innerHTML = 'console: ' +  err.message;
                   console.error(err)
                 }
-                if (Public.getPointIsInsideBox(intersectionPoint, this.boxContainer.side)) newEndPoint = intersectionPoint
+                if (Public.getPointIsInsideRect(intersectionPoint, this.rectContainer.side)) newEndPoint = intersectionPoint
               })
               this.endPoint.xy = newEndPoint
               this.endPoint.lineKey = newEndPoint.lineKey
@@ -534,8 +531,8 @@ if(!this.shapePen)return
         }
       },
       mouseClickedOnRotateArcGrip : {
-        evaluate: (mousePressPoint, shape = this.shapePen, isLineReferenced) => {
-          if(isLineReferenced)return
+        evaluate: (mousePressPoint, shape = this.shapePen, _isLineReferenced = isLineReferenced) => {
+          if(_isLineReferenced)return
           const result = shape.sendMousePress(mousePressPoint)
           if (!result) return
           if(!result.childEventInfo)return
@@ -569,8 +566,8 @@ if(!this.shapePen)return
       },
 
       mouseClickOnShape: {
-        evaluate: (mousePressPoint, shape = this.shapePen, isLineReferenced) => {
-          if(isLineReferenced)return
+        evaluate: (mousePressPoint, shape = this.shapePen, _isLineReferenced = isLineReferenced) => {
+          if(_isLineReferenced)return
           const result = shape.sendMousePress(mousePressPoint)
           if (!result) return
           if (result.eventKey === "mouseClickOnLine") return
@@ -601,7 +598,7 @@ if(!this.shapePen)return
       },
 
       mouseClickOnLine: {
-        evaluate: (mousePressPoint, shape = this.shapePen, proximityDistance = this.proximityDistance, isLineReferenced) => {
+        evaluate: (mousePressPoint, shape = this.shapePen, proximityDistance = this.proximityDistance, _isLineReferenced = isLineReferenced) => {
           if(isLineReferenced)return
           const result = Public.getUserMouseClickOnLine(mousePressPoint, proximityDistance, [shape.line])
           if (!result) return
@@ -626,11 +623,11 @@ if(!this.shapePen)return
             let lineKeys = ['topLine', 'rightLine', 'bottomLine', 'leftLine']
             const points = []
             lineKeys.forEach(lineKey => {
-              const boxLine = this.boxContainer[lineKey]
-              const intersectionPoint = Public.getLineIntersection(boxLine, tempLine)
+              const rectLine = this.rectContainer[lineKey]
+              const intersectionPoint = Public.getLineIntersection(rectLine, tempLine)
               intersectionPoint.lineKey = lineKey
 
-              if (Public.getPointIsInsideBox(intersectionPoint, this.boxContainer.side)) points.push(intersectionPoint)
+              if (Public.getPointIsInsideRect(intersectionPoint, this.rectContainer.side)) points.push(intersectionPoint)
             })
             if(points.length === 0)return null
             const newAngle = Math.round(Public.getAngle(points[0], points[1]))
@@ -662,7 +659,7 @@ if(!this.shapePen)return
     // this.init()
   } //** CLOSE CONSTRUCTOR */
 
-  get boxCenterPoint() {
+  get rectCenterPoint() {
     return {
       x: this.context.width / 2,
       y: this.context.height / 2
@@ -680,8 +677,8 @@ if(!this.shapePen)return
     return this.shapePen.angle
   }
 
-  get boxContainer (){
-    return this.getboxContainer()
+  get rectContainer (){
+    return this.getrectContainer()
   }
   get line (){
     return this.shapePen.line
@@ -692,6 +689,9 @@ if(!this.shapePen)return
   }
   get leftSideOfCutRect (){
     return this.gatherShapeOutputPoints(this.endPoint, this.beginPoint)
+  }
+  get rect (){
+    return this.getrectContainer
   }
 
 }

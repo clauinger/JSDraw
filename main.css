@@ -75,3 +75,12 @@ body {
   height: 400px;
   background: #bfb;
 }
+
+#recordButtonRow{
+  display: flex;
+  width: 100%;
+}
+
+#outputText{
+  min-width: 400px;
+}

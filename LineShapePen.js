@@ -129,7 +129,7 @@ export class LineShapePen extends PenConstruct {
           /*  haloRadius      */
           this.pointRadius,
           /*  haloLineWeight  */
-          1.5,
+          1.5
         )
       }
       if (this.endPointIsSelected) {

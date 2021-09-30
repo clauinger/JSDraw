@@ -20,7 +20,7 @@ import {
 import {
   NodeConnection ,
 } from './ReactiveModules/NodeConnection.js'
-//NodeConnection
+
 
 import {
   BezierShapePen
@@ -42,7 +42,15 @@ const BEZIER_SHAPE_PEN = 'BezierShapePen'
 const GROUP_SHAPE_PEN = 'GroupShapePen'
 
 const GHOST_COLOR = 'rgba(0,0,0,.1)'
-const NULL_OBJECT = {draw:()=>{},drawLoop:()=>{},context:null, isNULL_OBJECT:true}
+const NULL_OBJECT = {
+  draw: () => {},
+  drawLoop: () => {},
+  context: null,
+  isNULL_OBJECT: true,
+  sendMousePress: () => {},
+  sendMouseDrag: () => {},
+  sendMouseRelease: () => {}
+}
 
 const LINE = 'line'
 const ARC = 'arc'

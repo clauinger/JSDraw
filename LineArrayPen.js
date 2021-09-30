@@ -40,8 +40,13 @@ const NULL_OBJECT = {
   draw: () => {},
   drawLoop: () => {},
   setGripPoint: () => {},
-  toggleOn: () => {}
+  toggleOn: () => {},
+  isNULL_OBJECT: true,
+  sendMousePress: () => {},
+  sendMouseDrag: () => {},
+  sendMouseRelease: () => {}
 }
+
 
 const GHOST_COLOR = 'rgba(0,0,0,.1)'
 
